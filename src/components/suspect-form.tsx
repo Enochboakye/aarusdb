@@ -2,7 +2,7 @@
 "use client"
 
 import { Formik, Form as FormikForm, Field, FieldArray, ErrorMessage, type FormikHelpers, type FormikErrors } from "formik";
-import type { Suspect, CustodyStatus, Gender, EducationLevel, MaritalStatus, SuspectFormValues } from "@/types/suspect";
+import type { Suspect, Gender, MaritalStatus, SuspectFormValues } from "@/types/suspect";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,10 +18,10 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CalendarIcon, Save, Loader2, UserCog, UserPlus, Edit3, XCircle, Phone as PhoneIcon, ClipboardList, Landmark, Ruler, PlusCircle, Trash2, Gavel, Camera as CameraIconLucide, Upload, AlertTriangle } from "lucide-react";
+import { CalendarIcon, Save, Loader2, UserCog, UserPlus, Edit3, XCircle, Phone as PhoneIcon,  PlusCircle, Trash2, Gavel, Camera as CameraIconLucide,  AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, parseISO, isValid } from "date-fns";
-import { GENDERS, EDUCATION_LEVELS, MARITAL_STATUSES, NATIONALITIES, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, PHYSICAL_MARK_OPTIONS, CUSTODY_STATUS_OPTIONS } from "@/lib/constants";
+import { GENDERS, EDUCATION_LEVELS, MARITAL_STATUSES, NATIONALITIES, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, PHYSICAL_MARK_OPTIONS,  } from "@/lib/constants";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -30,7 +30,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Label } from "@/components/ui/label";
 import { FormItem } from "@/components/ui/form";
 
-type FormikSetFieldValue = (field: string, value: any, shouldValidate?: boolean) => void;
+type FormikSetFieldValue = (field: string, value: unknown, shouldValidate?: boolean) => void;
 
 interface SuspectFormProps {
   initialData?: Suspect | null;
