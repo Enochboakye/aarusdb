@@ -99,6 +99,7 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
   const imageToDisplay = suspect.profileImageUrl || "https://placehold.co/120x120.png";
 
   return (
+    <>
     <div className="p-4 bg-white text-black font-sans print:p-0" id="print-layout-content">
       <header className="text-center mb-6 print:mb-4 border-b pb-4 print:pb-2">
         <h1 className="text-xl print:text-lg font-bold text-primary print:text-black mt-4">AARUSDB - Suspect Profile</h1>
@@ -163,8 +164,11 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
             </CardContent>
           </Card>
         </div>
+
+        <Separator className="my-3 print:my-2 mb-8" />
         
-        <Card className="print:shadow-none print:border-gray-300 print:rounded-none mb-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-4 print:gap-3"></div>
+          <Card className="print:shadow-none print:border-gray-300 print:rounded-none ">
             <CardHeader className="print:pb-2 print:px-0">
               <CardTitle className="text-base print:text-sm font-semibold text-primary print:text-black flex items-center">
                 <Briefcase className="mr-2 h-5 w-5 print:h-4 print:w-4" /> Professional Details
@@ -177,7 +181,7 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
             </CardContent>
           </Card>
 
-        <Card className="print:shadow-none print:border-gray-300 print:rounded-none mb-8">
+          <Card className="print:shadow-none print:border-gray-300 print:rounded-none">
             <CardHeader className="print:pb-2 print:px-0">
               <CardTitle className="text-base print:text-sm font-semibold text-primary print:text-black flex items-center">
                 <MapPin className="mr-2 h-5 w-5 print:h-4 print:w-4" /> Address
@@ -187,9 +191,12 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
               <PrintDetailItem label="Residential Address" value={suspect.residentialAddress} isLongText />
             </CardContent>
           </Card>
+        </div>  
+
+          <Separator className="my-3 print:my-2 mb-8" />
 
         {displayOffences && displayOffences.length > 0 && (
-            <Card className="print:shadow-none print:border-gray-300 print:rounded-none mb-8">
+            <Card className="print:shadow-none print:border-gray-300 print:rounded-none">
                 <CardHeader className="print:pb-2 print:px-0">
                     <CardTitle className="text-base print:text-sm font-semibold text-primary print:text-black flex items-center">
                         <Gavel className="mr-2 h-5 w-5 print:h-4 print:w-4 text-red-700 print:text-black" /> Nature of Offence(s)
@@ -200,6 +207,8 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
                 </CardContent>
             </Card>
         )}
+
+        <Separator className="my-3 print:my-2 mb-4" />
 
         {suspect.linkedCaseRoNumbers && suspect.linkedCaseRoNumbers.length > 0 && (
             <Card className="print:shadow-none print:border-gray-300 print:rounded-none mb-8">
@@ -242,6 +251,7 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
         </Card>
       </div>
 
+
       <footer className="mt-8 print:mt-6 pt-4 print:pt-2 border-t text-center">
         <p className="text-xs text-gray-500 print:text-gray-700">
           Printed on: {format(new Date(), "PPP p")}
@@ -250,7 +260,8 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
           CONFIDENTIAL - Ghana Police Service - For Official Use Only
         </p>
       </footer>
-    </div>
+    
+    </>
   );
 };
 

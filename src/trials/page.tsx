@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { useParams, notFound } from 'next/navigation';
 import type { Suspect } from '@/types/suspect';
 import { db } from '@/lib/firebase';
@@ -8,7 +9,6 @@ import { doc, getDoc, Timestamp } from 'firebase/firestore';
 import { SuspectPrintLayout } from '@/components/suspect-print-layout';
 import { Loader2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
-import { useReactToPrint } from 'react-to-print';
 
 // Helper to check if a value is a Firestore Timestamp
 function isFirestoreTimestamp(value: unknown): value is Timestamp {
@@ -23,13 +23,6 @@ export default function SuspectPrintPage() {
   const [suspect, setSuspect] = useState<Suspect | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  const contentRef = useRef<HTMLDivElement>(null);
-
-  const handlePrint = useReactToPrint({
-     contentRef,
-    documentTitle: suspect ? `Suspect Profile - ${suspect.fullName}` : "Suspect Profile",
-  });
 
   useEffect(() => {
     if (!suspectId) {
@@ -89,17 +82,20 @@ export default function SuspectPrintPage() {
 
   useEffect(() => {
     if (suspect && !loading && !error) {
-      document.title = `Suspect Profile - ${suspect.fullName}`;
+      document.title = `Suspect Profile - ${suspect.fullName}`; // Set document title
       const timer = setTimeout(() => {
-        handlePrint?.();
-      }, 500);
+        window.print();
+        // Optional: Consider closing the window after print dialog, e.g.
+        // window.onafterprint = () => window.close(); 
+        // However, this can be disruptive if the user wants to keep the tab.
+      }, 500); // Small delay to allow rendering
       return () => clearTimeout(timer);
     } else if (!loading && (error || !suspect)) {
-      document.title = "Error Printing Suspect Profile";
+        document.title = "Error Printing Suspect Profile";
     } else if (loading) {
-      document.title = "Loading Suspect Profile for Print...";
+        document.title = "Loading Suspect Profile for Print...";
     }
-  }, [suspect, loading, error, handlePrint]);
+  }, [suspect, loading, error]);
 
   if (loading) {
     return (
@@ -126,7 +122,7 @@ export default function SuspectPrintPage() {
       <div className="flex flex-col items-center justify-center min-h-screen bg-background text-foreground p-4">
         <h1 className="text-xl font-semibold">Suspect Not Found</h1>
         <p className="mt-4 text-sm text-muted-foreground">The requested suspect could not be found.</p>
-        <p className="text-sm text-muted-foreground">You can close this window.</p>
+         <p className="text-sm text-muted-foreground">You can close this window.</p>
       </div>
     );
   }
@@ -136,15 +132,15 @@ export default function SuspectPrintPage() {
       <style jsx global>{`
         @media print {
           body {
-            background-color: #fff !important;
-            -webkit-print-color-adjust: exact;
-            print-color-adjust: exact;
+            background-color: #fff !important; /* Ensure white background for printing */
+            -webkit-print-color-adjust: exact; /* Chrome, Safari */
+            print-color-adjust: exact; /* Firefox, Edge */
           }
           .no-print { 
             display: none !important;
           }
         }
-        body {
+        body { /* For screen view before print dialog */
           background-color: hsl(var(--background));
           color: hsl(var(--foreground));
         }
@@ -153,9 +149,7 @@ export default function SuspectPrintPage() {
         <p className="text-center text-muted-foreground mb-4 no-print">
           Preparing print preview... The print dialog should appear automatically. If it doesn&#39;t, please use your browser&#39;s print function (Ctrl/Cmd + P).
         </p>
-        <div ref={contentRef}>
-          <SuspectPrintLayout suspect={suspect} />
-        </div>
+        <SuspectPrintLayout suspect={suspect} />
       </div>
     </>
   );
