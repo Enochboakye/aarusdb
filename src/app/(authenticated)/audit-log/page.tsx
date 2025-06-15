@@ -112,9 +112,6 @@ function AuditLogPageContent() {
           <DataTable 
               columns={columns} 
               data={auditLogs}
-              filterInputPlaceholder="Search audit logs on this page..."
-              onFilterChange={setFilter}
-              filterValue={filter}
               meta={{
                 refreshData: fetchAuditLogs
               }}

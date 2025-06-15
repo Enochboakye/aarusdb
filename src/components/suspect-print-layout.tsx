@@ -5,7 +5,7 @@ import type { Suspect } from '@/types/suspect';
 import { format, parseISO } from 'date-fns';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Briefcase,  Mail, MapPin, User,  ShieldAlert, Gavel, Palette, Sparkles, Eye, Phone as PhoneIcon, ClipboardList, Landmark, Ruler, Link2 } from 'lucide-react';
+import { Briefcase,  Mail, MapPin, User,  ShieldAlert, Gavel, Palette, Sparkles, Eye, Phone as PhoneIcon,  Ruler, Link2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
@@ -106,7 +106,7 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
       </header>
 
       <div className="space-y-4 print:space-y-3">
-        <Card className="print:shadow-none print:border-gray-300 print:rounded-none">
+        <Card className="print:shadow-none print:border-gray-300 print:rounded-none mb-8">
           <CardHeader className="print:pb-2 print:px-0">
             <CardTitle className="text-lg print:text-base font-semibold text-primary print:text-black flex items-center">
               <User className="mr-2 h-5 w-5 print:h-4 print:w-4" /> Basic Information
@@ -128,10 +128,10 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
           </CardContent>
         </Card>
         
-        <Separator className="my-3 print:my-2" />
+        <Separator className="my-3 print:my-2 mb-4" />
 
         <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-4 print:gap-3">
-          <Card className="print:shadow-none print:border-gray-300 print:rounded-none">
+          <Card className="print:shadow-none print:border-gray-300 print:rounded-none mb-8">
             <CardHeader className="print:pb-2 print:px-0">
               <CardTitle className="text-base print:text-sm font-semibold text-primary print:text-black flex items-center">
                 <Mail className="mr-2 h-5 w-5 print:h-4 print:w-4" /> Contact & Identification
@@ -144,7 +144,7 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
             </CardContent>
           </Card>
 
-          <Card className="print:shadow-none print:border-gray-300 print:rounded-none">
+          <Card className="print:shadow-none print:border-gray-300 print:rounded-none mb-8">
             <CardHeader className="print:pb-2 print:px-0">
               <CardTitle className="text-base print:text-sm font-semibold text-primary print:text-black flex items-center">
                 <User className="mr-2 h-5 w-5 print:h-4 print:w-4" /> Appearance & Lifestyle
@@ -164,7 +164,7 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
           </Card>
         </div>
         
-        <Card className="print:shadow-none print:border-gray-300 print:rounded-none">
+        <Card className="print:shadow-none print:border-gray-300 print:rounded-none mb-8">
             <CardHeader className="print:pb-2 print:px-0">
               <CardTitle className="text-base print:text-sm font-semibold text-primary print:text-black flex items-center">
                 <Briefcase className="mr-2 h-5 w-5 print:h-4 print:w-4" /> Professional Details
@@ -177,7 +177,7 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
             </CardContent>
           </Card>
 
-        <Card className="print:shadow-none print:border-gray-300 print:rounded-none">
+        <Card className="print:shadow-none print:border-gray-300 print:rounded-none mb-8">
             <CardHeader className="print:pb-2 print:px-0">
               <CardTitle className="text-base print:text-sm font-semibold text-primary print:text-black flex items-center">
                 <MapPin className="mr-2 h-5 w-5 print:h-4 print:w-4" /> Address
@@ -189,7 +189,7 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
           </Card>
 
         {displayOffences && displayOffences.length > 0 && (
-            <Card className="print:shadow-none print:border-gray-300 print:rounded-none">
+            <Card className="print:shadow-none print:border-gray-300 print:rounded-none mb-8">
                 <CardHeader className="print:pb-2 print:px-0">
                     <CardTitle className="text-base print:text-sm font-semibold text-primary print:text-black flex items-center">
                         <Gavel className="mr-2 h-5 w-5 print:h-4 print:w-4 text-red-700 print:text-black" /> Nature of Offence(s)
@@ -202,7 +202,7 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
         )}
 
         {suspect.linkedCaseRoNumbers && suspect.linkedCaseRoNumbers.length > 0 && (
-            <Card className="print:shadow-none print:border-gray-300 print:rounded-none">
+            <Card className="print:shadow-none print:border-gray-300 print:rounded-none mb-8">
                 <CardHeader className="print:pb-2 print:px-0">
                     <CardTitle className="text-base print:text-sm font-semibold text-primary print:text-black flex items-center">
                         <Link2 className="mr-2 h-5 w-5 print:h-4 print:w-4" /> Linked Case R.O. Numbers
@@ -216,29 +216,27 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
 
         <Separator className="my-3 print:my-2" />
 
-        <Card className="print:shadow-none print:border-gray-300 print:rounded-none">
-          <CardHeader className="print:pb-2 print:px-0">
-            <CardTitle className="text-base print:text-sm font-semibold text-primary print:text-black flex items-center">
-              <ClipboardList className="mr-2 h-5 w-5 print:h-4 print:w-4" /> Custody & Status
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-4 print:gap-x-2 print:pt-2 print:px-0">
-             <PrintDetailItem label="Custody Status" value={suspect.custodyStatus} />
-             <PrintDetailItem icon={Landmark} label="Custody Location (Cell/Unit)" value={suspect.custodyLocation} isLongText/>
-          </CardContent>
-        </Card>
+       
 
         <Card className="print:shadow-none print:border-gray-300 print:rounded-none">
           <CardHeader className="print:pb-2 print:px-0">
             <CardTitle className="text-base print:text-sm font-semibold text-primary print:text-black flex items-center">
-              <ShieldAlert className="mr-2 h-5 w-5 print:h-4 print:w-4" /> Record Administration
+              <ShieldAlert className="mr-2 h-5 w-5 print:h-4 print:w-4" /> SIGNATURES
             </CardTitle>
           </CardHeader>
           <CardContent className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-4 print:gap-x-2 print:pt-2 print:px-0">
-            <PrintDetailItem label="Assigned Investigator" value={suspect.assignedInvestigator} />
-            <PrintDetailItem label="Record Created At" value={suspect.createdAt} />
-            <PrintDetailItem label="Created By (Officer)" value={suspect.createdBy} />
-            <PrintDetailItem label="Last Updated At" value={suspect.updatedAt} />
+            <div>
+              <h6 className='mb-8'>Signature of Unit Commander</h6>
+            </div>
+            <div>
+              <h6 className='mb-8'>Signature of Unit Station Officer</h6>
+            </div>
+            <div>
+              <h6 className='mb-8'>Signature of Unit Investigator</h6>
+            </div>
+            <div>
+              <h6 className='mb-8'>Signature of Unit Suspect/Accused</h6>
+            </div>
             <PrintDetailItem label="Updated By (Officer)" value={suspect.updatedBy} />
           </CardContent>
         </Card>

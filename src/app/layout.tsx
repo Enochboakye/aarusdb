@@ -1,27 +1,24 @@
+import { Viewport } from "next";
+import { ThemeProvider } from "@/components/theme-provider";
+import { Inter } from "next/font/google";
 import {
   ClerkProvider,
   SignInButton,
   SignUpButton,
+  UserButton,
   SignedIn,
   SignedOut,
-  UserButton,
 } from '@clerk/nextjs'
-import { Viewport, type Metadata } from 'next'
-import { Geist, Geist_Mono } from 'next/font/google'
-import './globals.css'
+import "./globals.css";
 
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  preload: true,
+  fallback: ['system-ui', 'arial'],
+});
 
-const geistSans = Geist({
-  variable: '--font-geist-sans',
-  subsets: ['latin'],
-})
-
-const geistMono = Geist_Mono({
-  variable: '--font-geist-mono',
-  subsets: ['latin'],
-})
-
-export const metadata: Metadata = {
+export const metadata = {
   title: 'aarusdb',
   description: 'Anti Armed Robbery Unit Suspect Database',
 }
@@ -37,19 +34,28 @@ export default function RootLayout({
   children: React.ReactNode
 }>) {
   return (
-    <html lang="en">
-      <body className={`${geistSans.variable} ${geistMono.variable} antialiased`}>
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.className} antialiased`}>
         <ClerkProvider>
-          <header className="flex justify-center items-center p-4 gap-4 h-16">
-            <SignedOut>
-              <SignInButton />
-              <SignUpButton />
-            </SignedOut>
-            <SignedIn>
-              <UserButton />
-            </SignedIn>
-          </header>
-          {children}
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="system"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <div suppressHydrationWarning>
+              <header className="flex justify-center items-center p-4 gap-4 h-16">
+                <SignedOut>
+                  <SignInButton mode="modal" />
+                  <SignUpButton mode="modal" />
+                </SignedOut>
+                <SignedIn>
+                  <UserButton afterSignOutUrl="/sign-in" />
+                </SignedIn>
+              </header>
+              {children}
+            </div>
+          </ThemeProvider>
         </ClerkProvider>
       </body>
     </html>

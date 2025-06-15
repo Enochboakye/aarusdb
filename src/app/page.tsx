@@ -18,7 +18,7 @@ export default function Home() {
   return (
     <div className="justify-items-center items-center">
       <Image
-        src="/apple-icon.png"
+        src="/aaru-logo.png"
         alt="AarusDB Logo"
         width={200}
         height={200}

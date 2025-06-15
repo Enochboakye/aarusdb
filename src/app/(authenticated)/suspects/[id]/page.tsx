@@ -7,7 +7,7 @@ import { notFound, useRouter, useParams } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Edit, ArrowLeft, CalendarDays, MapPin, Briefcase, Mail, Phone as PhoneIconLucide, Languages, FileText, UserCheck, User as UserIcon, BookCopy, Gavel, Users, Building, Palette, Sparkles, Eye as EyeIcon, ClipboardList, Landmark, Ruler,  Link2, Loader2, Printer } from 'lucide-react'; 
+import { Edit, ArrowLeft, CalendarDays, MapPin, Briefcase, Mail, Phone as PhoneIconLucide, Languages, FileText, User as UserIcon, BookCopy, Gavel, Users, Building, Palette, Sparkles, Eye as EyeIcon, ClipboardList, Landmark, Ruler,  Link2, Loader2, Printer } from 'lucide-react'; 
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
@@ -249,7 +249,7 @@ export default function ViewSuspectPage() {
               <DetailItem icon={BookCopy} label="Level of Education" value={suspect.educationLevel} />
               <DetailItem icon={Users} label="Marital Status" value={suspect.maritalStatus} />
               <DetailItem icon={Briefcase} label="Occupation" value={suspect.occupation} />
-              <DetailItem icon={UserCheck} label="Assigned Investigator" value={suspect.assignedInvestigator} />
+  
             </CardContent>
           </Card>
 

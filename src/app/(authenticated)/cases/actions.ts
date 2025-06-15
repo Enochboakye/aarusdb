@@ -1,4 +1,3 @@
-
 "use server";
 
 import type { Case, Exhibit, CaseLink } from '@/types/case';
@@ -9,47 +8,49 @@ import { collection, addDoc, updateDoc, doc, getDoc, deleteDoc, Timestamp, query
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
 import type { AuditAction } from '@/types/audit';
 import { addAuditLogAction as addGenericAuditLog } from '../suspects/actions'; // Using the generic audit log from suspects/actions
+import { currentUser } from '@clerk/nextjs/server';
+import { writeBatch } from "firebase/firestore";
+import { arrayRemove } from "firebase/firestore";
 
-import { currentUser } from "@clerk/nextjs/server";
-
-export async function getCurrentUser() {
+async function getCurrentUser() {
   const user = await currentUser();
-  if (!user) return null;
   return {
-    userId: user.id,
-    userName: user.username || user.firstName || user.emailAddresses[0]?.emailAddress || "Unknown User",
-    email: user.emailAddresses[0]?.emailAddress,
-    // add more fields as needed
+    userId: user?.id || 'system',
+    userName: user?.firstName || 'System'
   };
 }
 
-// Helper function to serialize case data, converting Timestamps to ISO strings
-const serializeCaseData = (docData: Record<string, unknown>, id: string): Case => {
+interface CaseData {
+  createdAt?: Date | Timestamp | string;
+  updatedAt?: Date | Timestamp | string;
+  dateReported?: Date | Timestamp | string;
+  dateOccurred?: Date | Timestamp | string;
+  exhibits?: {uploadedAt?: Timestamp | string}[]
+  // Add other properties as needed
+}
+
+
+const serializeCaseData = (docData: CaseData, id: string): Case => {
   const data = { ...docData }; // Clone to avoid modifying original
-  if (data.createdAt && typeof (data.createdAt as { toDate?: () => Date }).toDate === 'function') {
-    data.createdAt = (data.createdAt as { toDate: () => Date }).toDate().toISOString();
+  if (data.createdAt && (data.createdAt as Timestamp).toDate) {
+  data.createdAt = (data.createdAt as Timestamp).toDate().toISOString();
   }
-  if (data.updatedAt && typeof (data.updatedAt as { toDate?: () => Date }).toDate === 'function') {
-    data.updatedAt = (data.updatedAt as { toDate: () => Date }).toDate().toISOString();
+  if (data.updatedAt && (data.updatedAt as Timestamp).toDate) {
+    data.updatedAt = (data.updatedAt as Timestamp).toDate().toISOString();
   }
-  if (data.dateReported && typeof (data.dateReported as { toDate?: () => Date }).toDate === 'function') {
-    data.dateReported = (data.dateReported as { toDate: () => Date }).toDate().toISOString();
+  if (data.dateReported && (data.dateReported as Timestamp).toDate) {
+    data.dateReported = (data.dateReported as Timestamp).toDate().toISOString();
   }
-  if (data.dateOccurred && typeof (data.dateOccurred as { toDate?: () => Date }).toDate === 'function') {
-    data.dateOccurred = (data.dateOccurred as { toDate: () => Date }).toDate().toISOString();
+  if (data.dateOccurred && (data.dateOccurred as Timestamp).toDate) {
+    data.dateOccurred = ( data.dateOccurred as Timestamp).toDate().toISOString();
   }
+
   if (data.exhibits && Array.isArray(data.exhibits)) {
-    data.exhibits = (data.exhibits as unknown[]).map((ex) => {
-      if (
-        ex &&
-        typeof ex === 'object' &&
-        'uploadedAt' in ex &&
-        ex.uploadedAt &&
-        typeof (ex.uploadedAt as { toDate?: () => Date }).toDate === 'function'
-      ) {
-        return { ...ex, uploadedAt: (ex.uploadedAt as { toDate: () => Date }).toDate().toISOString() };
+    data.exhibits = data.exhibits.map((exDate) => {
+      if (exDate.uploadedAt && (exDate.uploadedAt as Timestamp).toDate) {
+        return { ...exDate, uploadedAt:( exDate.uploadedAt as Timestamp).toDate().toISOString() };
       }
-      return ex;
+      return exDate;
     });
   }
   return { id, ...data } as Case;
@@ -124,7 +125,7 @@ export async function deleteExhibitAction(storagePath: string): Promise<void> {
         console.log("Exhibit deleted from storage:", storagePath);
     } catch (error: unknown) {
         console.error("Error deleting exhibit from storage:", error);
-        if (typeof error === "object" && error !== null && "code" in error && (error as { code: string }).code !== 'storage/object-not-found') { 
+        if ((error as { code?: string }).code !== 'storage/object-not-found') { 
             throw new Error(`Failed to delete exhibit file. Error: ${error instanceof Error ? error.message : String(error)}`);
         }
     }
@@ -132,7 +133,8 @@ export async function deleteExhibitAction(storagePath: string): Promise<void> {
 
 async function processAndUploadExhibits(
     exhibits: Exhibit[], 
-    caseId: string
+    caseId: string, 
+    
 ): Promise<Exhibit[]> {
     const processedExhibits: Exhibit[] = [];
     for (const exhibit of exhibits) {
@@ -219,61 +221,62 @@ async function updateSuspectRecordsWithCaseLink(
 export async function createCaseAction(
   data: CaseFormValues
 ): Promise<Case> {
-  const currentUserObj = await getCurrentUser();
-  if (!currentUserObj) {
-    throw new Error("No authenticated user found.");
-  }
-  const { userId, userName } = currentUserObj;
+  const { userId, userName } = await getCurrentUser();
   
   const roNumberString = `${String(data.caseSequenceNumber).padStart(3, '0')}/${data.year}`;
   const caseIdForUploads = crypto.randomUUID(); 
 
-  const finalExhibits = await processAndUploadExhibits(
-    (data.exhibits || []).map(ex => ({
-      ...ex,
-      uploadedAt: ex.uploadedAt ?? new Date().toISOString(),
-      storagePath: ex.storagePath ?? "",
-    })),
-    caseIdForUploads
-  );
+  //const finalExhibits = await processAndUploadExhibits(data.exhibits || [], caseIdForUploads, userId, userName);
+    const finalExhibits = await processAndUploadExhibits(
+  data.exhibits.map((exhibit) => ({
+  ...exhibit,
+  uploadedAt: exhibit.uploadedAt ?? '',
+})) as Exhibit[],
+  caseIdForUploads,
+);
 
-  const newCaseData = {
+  const newCaseData: Omit<Case, 'id'> = {
     ...data, 
     roNumber: roNumberString,
     suspectLinks: data.suspectLinks || [],
     exhibits: finalExhibits,
-    witnesses: data.witnesses || [],
+    witnesses: data.witnesses?.map(witness => ({
+      ...witness,
+      address: witness.address ?? '',
+      contact: witness.contact ?? ''
+    })) || [],
     createdAt: Timestamp.fromDate(new Date()).toDate().toISOString(),
     updatedAt: Timestamp.fromDate(new Date()).toDate().toISOString(),
     createdBy: userName, 
     createdById: userId, 
   };
   
-  const saveData = newCaseData as Omit<Case, "id">;
+  const { ...saveData } = newCaseData as Case; 
 
 
   try {
     const caseCollectionRef = collection(db, "cases");
     const docRef = await addDoc(caseCollectionRef, saveData);
     
-    const createdCaseData = {
+    const createdCase: Case = {
       ...saveData,
-    };
+      id: docRef.id,
+    } as Case; 
 
     await addAuditLogForCaseAction(
-      docRef.id,
-      createdCaseData.roNumber, 
+      createdCase.id,
+      createdCase.roNumber, 
       "CREATE",
-      `Case record created: R.O. ${createdCaseData.roNumber}. Exhibits: ${createdCaseData.exhibits.length}. Suspects linked: ${createdCaseData.suspectLinks.length}.`,
+      `Case record created: R.O. ${createdCase.roNumber}. Exhibits: ${createdCase.exhibits.length}. Suspects linked: ${createdCase.suspectLinks.length}.`,
       userId,
       userName
     );
     
-    if (createdCaseData.suspectLinks && createdCaseData.suspectLinks.length > 0) {
-      await updateSuspectRecordsWithCaseLink(createdCaseData.suspectLinks, createdCaseData.roNumber, userId, userName);
+    if (createdCase.suspectLinks && createdCase.suspectLinks.length > 0) {
+      await updateSuspectRecordsWithCaseLink(createdCase.suspectLinks, createdCase.roNumber, userId, userName);
     }
     
-    return serializeCaseData(createdCaseData as Record<string, unknown>, docRef.id);
+    return serializeCaseData(createdCase, createdCase.id);
   } catch (error) {
     console.error("Error creating case in Firestore:", error);
     throw new Error(`Failed to create case: ${error instanceof Error ? error.message : String(error)}`);
@@ -284,11 +287,7 @@ export async function updateCaseAction(
   id: string,
   data: CaseFormValues
 ): Promise<Case | null> {
-  const currentUserObj = await getCurrentUser();
-  if (!currentUserObj) {
-    throw new Error("No authenticated user found.");
-  }
-  const { userId, userName } = currentUserObj;
+  const { userId, userName } = await getCurrentUser();
   
   const caseDocRef = doc(db, "cases", id);
 
@@ -308,33 +307,40 @@ export async function updateCaseAction(
         if (path) await deleteExhibitAction(path);
     }
 
+
     const finalExhibits = await processAndUploadExhibits(
-      (data.exhibits || []).map(ex => ({
-        ...ex,
-        uploadedAt: ex.uploadedAt ?? new Date().toISOString(),
-        storagePath: ex.storagePath ?? "",
-      })),
-      id
-    );
+  data.exhibits.map((exhibit) => ({
+    ...exhibit,
+    uploadedAt: exhibit.uploadedAt ?? '', // Ensure uploadedAt is always a string
+  })) as Exhibit[],
+  id,
+);
 
     const roNumberString = `${String(data.caseSequenceNumber).padStart(3, '0')}/${data.year}`;
-    const updatedCasePayloadFromForm = {
+
+    const updatedCasePayloadFromForm: Partial<Case> = {
       ...data,
       roNumber: roNumberString,
       suspectLinks: data.suspectLinks || [],
       exhibits: finalExhibits,
-      witnesses: data.witnesses || [],
+      witnesses: data.witnesses?.map(witness => ({
+        ...witness,
+        address: witness.address ?? '',
+        contact: witness.contact ?? ''
+      })) || [],
       updatedAt: Timestamp.fromDate(new Date()).toDate().toISOString(),
       updatedBy: userName, 
       updatedById: userId, 
     };
     
-    await updateDoc(caseDocRef, updatedCasePayloadFromForm);
+    const { ...updatedCasePayload } = updatedCasePayloadFromForm;
+
+    await updateDoc(caseDocRef, updatedCasePayload);
 
     const fullUpdatedCaseData = {
       id: id, 
       ...existingCaseData,
-      ...updatedCasePayloadFromForm,
+      ...updatedCasePayload,
     } as Case;
     
     const changeDetails = `Case record R.O. ${fullUpdatedCaseData.roNumber} updated. Exhibits: ${fullUpdatedCaseData.exhibits.length}. Suspects linked: ${fullUpdatedCaseData.suspectLinks.length}.`; 
@@ -352,7 +358,7 @@ export async function updateCaseAction(
       await updateSuspectRecordsWithCaseLink(fullUpdatedCaseData.suspectLinks, fullUpdatedCaseData.roNumber, userId, userName);
     }
 
-    return serializeCaseData(fullUpdatedCaseData as unknown as Record<string, unknown>, id);
+    return serializeCaseData(fullUpdatedCaseData, id);
   } catch (error) {
     console.error(`Error updating case ${id} in Firestore:`, error);
     throw new Error(`Failed to update case: ${error instanceof Error ? error.message : String(error)}`);
@@ -361,34 +367,55 @@ export async function updateCaseAction(
 
 
 export async function deleteCaseAction(
-  id: string, 
-  roNumber: string, 
-  exhibitStoragePaths: string[] 
-  ): Promise<{ success: boolean; message?: string }> {
-  const currentUserObj = await getCurrentUser();
-  if (!currentUserObj) {
-    throw new Error("No authenticated user found.");
-  }
-  const { userId, userName } = currentUserObj;
-
+  id: string
+): Promise<{ success: boolean; message?: string }> {
+  const { userId, userName } = await getCurrentUser();
   const caseDocRef = doc(db, "cases", id);
 
   try {
-    // TODO: Also remove this case's R.O. number from linked suspects' linkedCaseRoNumbers array.
-    // This requires fetching the case, iterating its suspectLinks, then fetching each suspect and updating them.
-    // For now, we only delete the case and its exhibits. Consider adding this full cleanup later.
+    const caseSnap = await getDoc(caseDocRef);
+    if (!caseSnap.exists()) {
+      return { success: false, message: `Case with ID ${id} not found.` };
+    }
+    const caseData = caseSnap.data() as Case;
+    const roNumber = caseData.roNumber;
+    const exhibitStoragePaths = (caseData.exhibits || []).map(ex => ex.storagePath).filter(Boolean) as string[];
+    const suspectLinks = caseData.suspectLinks || [];
 
-    for (const path of exhibitStoragePaths) {
-        if (path) await deleteExhibitAction(path); 
+    // 1. Unlink suspects
+    if (suspectLinks.length > 0 && roNumber) {
+      const batch = writeBatch(db);
+      for (const link of suspectLinks) {
+        if (link.type === 'suspect' && link.id) {
+          const suspectDocRef = doc(db, "suspectdata", link.id);
+          // We don't need to fetch the suspect if we're just removing the RO number.
+          // arrayRemove handles non-existent elements gracefully.
+          batch.update(suspectDocRef, {
+            linkedCaseRoNumbers: arrayRemove(roNumber),
+            updatedAt: Timestamp.fromDate(new Date()).toDate().toISOString(),
+            updatedBy: userName,
+            updatedById: userId,
+          });
+        }
+      }
+      await batch.commit();
+      console.log(`Successfully unlinked case R.O. ${roNumber} from ${suspectLinks.length} suspects.`);
     }
 
+    // 2. Delete exhibits
+    for (const path of exhibitStoragePaths) {
+      if (path) await deleteExhibitAction(path);
+    }
+
+    // 3. Delete the case document
     await deleteDoc(caseDocRef);
     
+    // 4. Add audit log
     await addAuditLogForCaseAction(
       id,
       roNumber,
       "DELETE",
-      `Case record R.O. ${roNumber} (ID: ${id}) and associated exhibits permanently deleted.`,
+      `Case record R.O. ${roNumber} (ID: ${id}), associated exhibits, and links from suspects permanently deleted.`,
       userId,
       userName
     );
@@ -406,7 +433,7 @@ export async function fetchCasesAction(): Promise<Case[]> {
     const q = query(casesCollectionRef); 
     
     const querySnapshot = await getDocs(q);
-    const fetchedCases: Case[] = querySnapshot.docs.map(doc => serializeCaseData(doc.data() as Record<string, unknown>, doc.id));
+    const fetchedCases: Case[] = querySnapshot.docs.map(doc => serializeCaseData(doc.data(), doc.id));
     return fetchedCases;
   } catch (error) {
     console.error("Error fetching cases from Firestore:", error);
@@ -419,7 +446,7 @@ export async function fetchCaseAction(id: string): Promise<Case | null> {
     const caseDocRef = doc(db, "cases", id);
     const docSnap = await getDoc(caseDocRef);
     if (docSnap.exists()) {
-      return serializeCaseData(docSnap.data() as Record<string, unknown>, docSnap.id);
+      return serializeCaseData(docSnap.data(), docSnap.id);
     }
     return null;
   } catch (error) {
@@ -443,3 +470,4 @@ export async function getSuspectMatchesForCaseRoAction(roNumber: string): Promis
     return []; 
   }
 }
+

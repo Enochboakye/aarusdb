@@ -10,20 +10,16 @@ export interface Exhibit {
   isCameraCapture?: boolean; // True if 'url' is a dataURI from camera, false/undefined if uploaded file
 }
 
-export interface Complainant {
-  name: string;
-  contact?: string; 
-  address?: string;
-  // statement?: string; // Removed as per user request
-}
-
 export interface Witness {
-  id: string; 
+  id:string;
   name: string;
   contact?: string;
-  address?: string;
-  statement?: string; 
+  address: string;
 }
+
+
+
+
 
 export interface CaseLink { 
   id: string; 
@@ -34,6 +30,7 @@ export interface Case {
   id: string;
   roNumber: string; 
   year: number; 
+  caseSequenceNumber: number;
   assignedInvestigator: string; 
   offence: string; 
   briefFacts: string;
@@ -43,7 +40,7 @@ export interface Case {
   dateOccurred?: string; // ISO string, if different from reported
   locationOfOffence?: string;
 
-  complainant: Complainant;
+  complainant: string;
   witnesses: Witness[];
   suspectLinks: CaseLink[]; 
   exhibits: Exhibit[]; 

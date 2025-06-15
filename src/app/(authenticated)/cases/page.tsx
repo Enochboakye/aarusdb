@@ -1,58 +1,63 @@
-
 "use client";
 import React, { useState, useEffect, useCallback, Suspense } from 'react'; // Added React and Suspense
 import { PlusCircle, Loader2, Briefcase } from 'lucide-react';
 import { PageContainer } from '@/components/page-container';
-import { DataTable } from '@/components/data-table';
-import { columns } from './columns';
+import {useRouter} from 'next/navigation'
 import type { Case } from '@/types/case';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
 import { toast } from '@/hooks/use-toast';
 import { fetchCasesAction } from './actions'; 
-import { useSearchParams } from 'next/navigation';
+import ClientDataGrid from '@/components/client-data-grid';
+import {GridFilterModel, GridColDef} from '@mui/x-data-grid';
+import {caseActionColumn} from './columns'
+
 
 function CasesPageContent() {
-  const searchParams = useSearchParams();
-  const initialSearchQuery = searchParams.get('q');
+  
 
   const [cases, setCases] = useState<Case[]>([]);
   const [loading, setLoading] = useState(true); 
-  const [filter, setFilter] = useState(initialSearchQuery || '');
+  const [filterModel, setFilterModel] = useState<GridFilterModel>();
+  const [searchValue, setSearchValue] = useState('');
+
+  const muiColumns: GridColDef[] = [
+    {
+      field: 'id',
+      headerName: 'ID',
+      width: 50,
+      hideable: true, // Hide the ID column but keep it for internal use
+    },
+    {
+      field: 'roNumber',
+      headerName: 'R.O Number',
+      width: 100
+    },
+    {
+      field: 'priority',
+      headerName: 'Priority',
+      width:100
+    },
+    {
+      field: 'complainant',
+      headerName: 'Complainant',
+      width: 200,
+     
+    },
+    {
+      field: 'dateOccurred',
+      headerName: 'D.O.O',
+      width: 100
+    }
+  ];
 
   const fetchCases = useCallback(async () => {
     setLoading(true);
+
     try {
       const fetchedCases = await fetchCasesAction(); 
       
-      let filteredCases = fetchedCases;
-      if (filter) { 
-        const lowercasedFilter = filter.toLowerCase();
-
-
-        filteredCases = fetchedCases.filter((c: Case) => {
-            const complainant = c.complainant || {};
-            const witnesses = c.witnesses || [];
-            return (
-                String(c.roNumber).toLowerCase().includes(lowercasedFilter) || 
-                (c.offence && c.offence.toLowerCase().includes(lowercasedFilter)) ||
-                (c.assignedInvestigator && c.assignedInvestigator.toLowerCase().includes(lowercasedFilter)) ||
-                (c.year && String(c.year).includes(lowercasedFilter)) || 
-                (c.briefFacts && c.briefFacts.toLowerCase().includes(lowercasedFilter)) ||
-                (complainant.name && complainant.name.toLowerCase().includes(lowercasedFilter)) ||
-                (c.locationOfOffence && c.locationOfOffence.toLowerCase().includes(lowercasedFilter)) ||
-                (complainant.contact && complainant.contact.toLowerCase().includes(lowercasedFilter)) ||
-                (complainant.address && complainant.address.toLowerCase().includes(lowercasedFilter)) ||
-                witnesses.some((w) => 
-                    (w.name && w.name.toLowerCase().includes(lowercasedFilter)) ||
-                    (w.contact && w.contact.toLowerCase().includes(lowercasedFilter)) ||
-                    (w.address && w.address.toLowerCase().includes(lowercasedFilter)) ||
-                    (w.statement && w.statement.toLowerCase().includes(lowercasedFilter))
-                )
-            );
-        });
-      }
-      setCases(filteredCases);
+      
+      setCases(fetchedCases);
     } catch (error) {
       console.error("Error fetching cases:", error);
       toast({
@@ -64,20 +69,23 @@ function CasesPageContent() {
     } finally {
       setLoading(false);
     }
-  }, [filter]); 
+  }, []); 
 
   useEffect(() => {
     fetchCases();
   }, [fetchCases]); 
 
   useEffect(() => {
-    const queryParam = searchParams.get('q');
-    if (queryParam !== null) {
-      if (queryParam !== filter) {
-        setFilter(queryParam);
-      }
-    }
-  }, [searchParams, filter]);
+    const timeoutId = setTimeout(() => {
+      setFilterModel({
+        items: [
+          {id:1, field: "roNumber", operator: "contains", value: searchValue},
+          
+        ],
+      });
+    }, 300);
+    return () => clearTimeout(timeoutId);
+  }, [searchValue]);
 
   return (
     <>
@@ -87,22 +95,33 @@ function CasesPageContent() {
           <p className="ml-4 text-lg">Loading case records...</p>
         </div>
       ) : (
-        <DataTable 
-          columns={columns} 
-          data={cases}
-          filterInputPlaceholder="Search cases on this page..."
-          onFilterChange={setFilter} 
-          filterValue={filter}
-          meta={{
-            refreshData: fetchCases
-          }}
-        />
+        <>
+          <div>
+            <input
+              type="text"
+              placeholder="Search"
+              value={searchValue}
+              onChange={(e) => setSearchValue(e.target.value)}
+              className="border p-2 mb-4 w-full rounded-md shadow-md"
+            />
+          </div>
+          <ClientDataGrid 
+            columns={[...muiColumns,...caseActionColumn]} 
+            rows={cases}
+            loading={loading}
+            filterModel={filterModel}
+            onFilterModelChange={setFilterModel}
+            disableMultipleRowSelection={false}
+            checkboxSelection
+          />
+        </>
       )}
     </>
   );
 }
 
 export default function CasesPage() {
+  const router = useRouter();
   return (
     <PageContainer title="Manage Cases">
       <div className="flex justify-between items-center mb-6 -mt-4">
@@ -115,10 +134,10 @@ export default function CasesPage() {
             View, add, and manage criminal case information. Use the search to filter records.
           </p>
         </div>
-        <Button asChild>
-          <Link href="/cases/new">
+        <Button onClick={()=> router.push("/cases/new")}>
+          <div className="flex items-center">
             <PlusCircle className="mr-2 h-4 w-4" /> Add New Case
-          </Link>
+          </div>
         </Button>
       </div>
       <div className="space-y-6">

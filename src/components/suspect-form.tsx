@@ -21,7 +21,8 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { CalendarIcon, Save, Loader2, UserCog, UserPlus, Edit3, XCircle, Phone as PhoneIcon,  PlusCircle, Trash2, Gavel, Camera as CameraIconLucide,  AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, parseISO, isValid } from "date-fns";
-import { GENDERS, EDUCATION_LEVELS, MARITAL_STATUSES, NATIONALITIES, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, PHYSICAL_MARK_OPTIONS,  } from "@/lib/constants";
+import { GENDERS, EDUCATION_LEVELS, MARITAL_STATUSES, NATIONALITIES, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, PHYSICAL_MARK_OPTIONS,
+  CUSTODY_STATUS_OPTIONS,} from "@/lib/constants";
 import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect, useRef, useCallback } from "react";
@@ -538,6 +539,26 @@ export function SuspectForm({ initialData, onSubmitForm, isEditMode = false }: S
                     </div>
                 </div>
             </div>
+            <div className="space-y-6 border-b pb-8">
+              <h3 className="text-xl font-semibold text-foreground">Custody Information</h3>
+                  <p className="text-sm font-semibold text-muted-foreground">Select Custody Status of the Suspect. e.g: on bail, in police custody or prisons</p>
+                  <FormItem>
+                    <Label htmlFor="custodyStatus">Custody Status *</Label>
+                     <Select onValueChange={(value) => setFieldValue('custodyStatus', value)} value={values.custodyStatus ?? ""} disabled={formikSubmitting}>
+                    <SelectTrigger id="custodyStatus"><SelectValue placeholder="Select custody status" /></SelectTrigger>
+                    <SelectContent>{CUSTODY_STATUS_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</  SelectItem>)}
+                    </SelectContent>
+                  </Select>
+        <FormikErrorMessage name="custodyStatus" />
+        <div className="mt-4">
+        <FormItem>
+         <Label htmlFor="custodyLocation">Custody Location</Label>
+          <Field as={Input} name="custodyLocation" id="custodyLocation" placeholder="Enter custody location if in POlice custody of prisons (if any)" disabled={formikSubmitting}/>
+          <FormikErrorMessage name="custodyLocation" />
+      </FormItem>
+      </div>
+      </FormItem>
+            </div>
 
             <div className="space-y-6 border-b pb-8">
               <h3 className="text-xl font-semibold text-foreground">Suspect Image</h3>
@@ -611,6 +632,7 @@ export function SuspectForm({ initialData, onSubmitForm, isEditMode = false }: S
                         <p className="text-sm text-muted-foreground">If suspect tied to a case, enter R.O. Number (NNN/YYYY).</p>
                         <FormikErrorMessage name="linkedRoNumber" />
                     </FormItem>
+                   
                     {isEditMode && initialData && (
                         <>
                           <FormItem className="lg:col-start-1"><Label>Record Created At</Label><p className="text-sm text-muted-foreground pt-2">{initialData.createdAt && isValid(parseISO(initialData.createdAt)) ? format(parseISO(initialData.createdAt), "PPP p") : 'N/A'}</p></FormItem>

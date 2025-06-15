@@ -1,4 +1,3 @@
-
 "use server";
 
 import type { Suspect, SuspectFormValues } from '@/types/suspect';
@@ -7,14 +6,16 @@ import type { Case, CaseLink } from '@/types/case';
 import { db, storage } from '@/lib/firebase';
 import { collection, addDoc, updateDoc, doc, getDoc, deleteDoc, Timestamp, getDocs, query, where, writeBatch, arrayUnion } from "firebase/firestore";
 import { ref, uploadBytes, getDownloadURL, deleteObject } from "firebase/storage";
-
-const MOCK_SYSTEM_USER = {
-  userId: "system_default_id",
-  userName: "System User",
-};
+import { auth, currentUser } from '@clerk/nextjs/server'
 
 async function getCurrentUser() {
-  return MOCK_SYSTEM_USER;
+  const { userId } = await auth()
+  const user = await currentUser()
+  
+  return {
+    userId: userId || 'system',
+    userName: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'System User'
+  };
 }
 
 // Helper to convert Data URI to Blob
@@ -142,8 +143,8 @@ export async function addAuditLogAction(
       logEntry.entityId = options.entityId;
       logEntry.entityType = "CASE";
       logEntry.entityIdentifier = options.entityIdentifier;
-      logEntry.suspectId = options.suspectId || undefined; 
-      logEntry.suspectFullName = options.suspectFullName || undefined;
+      if (options.suspectId) logEntry.suspectId = options.suspectId;
+      if (options.suspectFullName) logEntry.suspectFullName = options.suspectFullName;
     } else if (options.suspectId && options.suspectFullName) {
       logEntry.suspectId = options.suspectId;
       logEntry.suspectFullName = options.suspectFullName;

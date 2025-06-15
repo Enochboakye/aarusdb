@@ -1,10 +1,8 @@
 "use client"
-
-import type { ColumnDef, Row, Table } from "@tanstack/react-table"
+import { useRouter } from "next/navigation"
 import type { Suspect } from "@/types/suspect"
-import { ArrowUpDown, MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react"
+import { MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
-import { Checkbox } from "@/components/ui/checkbox"
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -28,115 +26,31 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog" 
 import React from "react"
-import {  parseISO } from "date-fns"
-import type { BaseTableMeta } from '@/components/data-table';
+import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 
-
-export const columns: ColumnDef<Suspect>[] = [
+const actionColumn: GridColDef[] = [
   {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={
-          table.getIsAllPageRowsSelected() ||
-          (table.getIsSomePageRowsSelected() && "indeterminate")
-        }
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
+    field: "action",
+    headerName: "Action",
+    width: 200,
+    type: 'actions',
+    renderCell: (params: GridRenderCellParams<Suspect>) => (
+      <div className="cellAction gap-4">
+        <CellActions suspect={params.row} />
+      </div>
     ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
   },
-  {
-    accessorKey: "fullName",
-    header: ({ column }) => {
-      return (
-        <Button
-          variant="ghost"
-          onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}
-        >
-          Full Name
-          <ArrowUpDown className="ml-2 h-4 w-4" />
-        </Button>
-      )
-    },
-  },
-  {
-    accessorKey: "nickname",
-    header: "Nickname",
-  },
-  {
-    accessorKey: "gender",
-    header: "Gender",
-  },
-  {
-    accessorKey: "dateOfBirth",
-    header: "Date of Birth",
-    cell: ({ row }) => {
-      const dateString = row.getValue("dateOfBirth");
-      if (!dateString || typeof dateString !== 'string') return 'N/A';
-      try {
-        const date = parseISO(dateString) 
-        return new Intl.DateTimeFormat('en-GB').format(date)
-      } catch {
-        return dateString; 
-      }
-    }
-  },
-  {
-    accessorKey: "nationality",
-    header: "Nationality",
-  },
-   {
-    accessorKey: "updatedAt",
-    header: "Last Updated",
-    cell: ({ row }) => {
-      const dateString = row.getValue("updatedAt");
-      if (!dateString || typeof dateString !== 'string') return 'N/A';
-      try {
-        const date = parseISO(dateString)
-        return new Intl.DateTimeFormat('en-GB', { dateStyle: 'short', timeStyle: 'short' }).format(date)
-      } catch {
-        return dateString;
-      }
-    },
-    sortingFn: 'datetime', 
-  },
-  {
-    id: "actions",
-    cell: ({ row, table }) => {
-      return <CellActions row={row} table={table} />;
-    },
-  },
-]
+];
 
-const CellActions = ({ row, table }: { 
-  row: Row<Suspect>; 
-  table: Table<Suspect> 
-}) => {
-  const suspect = row.original;
+const CellActions = ({ suspect }: { suspect: Suspect }) => {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
-  const meta = table.options.meta as BaseTableMeta | undefined;
-  const refreshData = meta?.refreshData;
-
+ const router = useRouter();
   const handleDelete = async () => {
     toast({ title: "Processing", description: `Deleting record for ${suspect.fullName}...` });
     try {
       const result = await deleteSuspectAction(suspect.id, suspect.fullName); 
       if (result.success) {
         toast({ title: "Success", description: `Record for ${suspect.fullName} deleted successfully.`, variant: "default" });
-         if (refreshData) {
-          refreshData();
-        }
-
       } else {
         toast({ title: "Error", description: result.message || "Failed to delete record.", variant: "destructive" });
       }
@@ -146,6 +60,7 @@ const CellActions = ({ row, table }: {
       console.error("Delete error:", e);
     }
     setIsDeleteDialogOpen(false);
+    await router.refresh()
   };
 
   return (
@@ -170,12 +85,12 @@ const CellActions = ({ row, table }: {
             </Link>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
-           <AlertDialogTrigger asChild>
+          <AlertDialogTrigger asChild>
             <DropdownMenuItem
               className="text-destructive focus:text-destructive-foreground focus:bg-destructive"
               onSelect={(e) => {
-                  e.preventDefault(); 
-                  setIsDeleteDialogOpen(true); 
+                e.preventDefault(); 
+                setIsDeleteDialogOpen(true); 
               }} 
             >
               <Trash2 className="mr-2 h-4 w-4" /> Delete Record
@@ -201,3 +116,5 @@ const CellActions = ({ row, table }: {
     </AlertDialog>
   )
 }
+
+export default actionColumn

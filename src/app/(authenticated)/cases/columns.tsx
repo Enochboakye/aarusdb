@@ -1,11 +1,8 @@
-
 "use client";
 
-import type { ColumnDef, Row, Table as TanstackTable } from "@tanstack/react-table";
 import type { Case } from "@/types/case";
-import { ArrowUpDown, MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react";
+import { MoreHorizontal, Eye, Edit, Trash2 } from "lucide-react";
 import { Button, buttonVariants } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -29,81 +26,34 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import React from "react";
-import { format, parseISO } from "date-fns";
-import type { BaseTableMeta } from '@/components/data-table';
+import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
 
-export const columns: ColumnDef<Case>[] = [
+export const caseActionColumn: GridColDef[] = [
   {
-    id: "select",
-    header: ({ table }) => (
-      <Checkbox
-        checked={table.getIsAllPageRowsSelected() || (table.getIsSomePageRowsSelected() && "indeterminate")}
-        onCheckedChange={(value) => table.toggleAllPageRowsSelected(!!value)}
-        aria-label="Select all"
-      />
+    field: "action",
+    headerName: "Action",
+    width: 200,
+    type: 'actions',
+    renderCell: (params: GridRenderCellParams<Case>) => (
+      <div className="cellAction gap-4">
+        <CaseCellActions caseData={params.row} />
+      </div>
     ),
-    cell: ({ row }) => (
-      <Checkbox
-        checked={row.getIsSelected()}
-        onCheckedChange={(value) => row.toggleSelected(!!value)}
-        aria-label="Select row"
-      />
-    ),
-    enableSorting: false,
-    enableHiding: false,
   },
-  {
-    accessorKey: "roNumber",
-    header: ({ column }) => (
-      <Button variant="ghost" onClick={() => column.toggleSorting(column.getIsSorted() === "asc")}>
-        R.O. Number <ArrowUpDown className="ml-2 h-4 w-4" />
-      </Button>
-    ),
-    cell: ({ row }) => String(row.getValue("roNumber")), 
-  },
-  {
-    accessorKey: "offence",
-    header: "Offence Type",
-    cell: ({ row }) => <div className="truncate max-w-xs">{row.getValue("offence")}</div>,
-  },
-  {
-    accessorKey: "assignedInvestigator",
-    header: "Assigned Investigator",
-  },
-  {
-    accessorKey: "dateReported",
-    header: "Date Reported",
-    cell: ({ row }) => {
-      const dateString = row.getValue("dateReported");
-      if (!dateString || typeof dateString !== 'string') return 'N/A';
-      try {
-        return format(parseISO(dateString), "dd/MM/yyyy");
-      } catch { return dateString; }
-    },
-  },
-  {
-    id: "actions",
-    cell: ({ row, table }) => {
-      return <CaseCellActions row={row} table={table} />;
-    },
-  },
-];
+]
 
-const CaseCellActions = ({ row, table }: { 
-  row: Row<Case>; 
-  table: TanstackTable<Case> 
+
+const CaseCellActions = ({ refreshData, caseData }: { 
+  refreshData?: () => void;
+  caseData: Case;
 }) => {
-  const caseRecord = row.original;
+  const caseRecord = caseData;
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
-  const meta = table.options.meta as BaseTableMeta | undefined;
-  const refreshData = meta?.refreshData;
 
   const handleDelete = async () => {
-    const exhibitPaths = caseRecord.exhibits.map(ex => ex.storagePath).filter(Boolean) as string[];
-    
     toast({ title: "Processing", description: `Deleting case R.O. ${caseRecord.roNumber}...` });
     try {
-      const result = await deleteCaseAction(caseRecord.id, caseRecord.roNumber, exhibitPaths); 
+      const result = await deleteCaseAction(caseRecord.id); 
       if (result.success) {
         toast({ title: "Success", description: `Case R.O. ${caseRecord.roNumber} deleted.`, variant: "default" });
         if (refreshData) {
@@ -158,7 +108,7 @@ const CaseCellActions = ({ row, table }: {
         <AlertDialogHeader>
           <AlertDialogTitle>Are you sure?</AlertDialogTitle>
           <AlertDialogDescription>
-            This will permanently delete case R.O. <span className="font-semibold">{caseRecord.roNumber}</span> and all its associated exhibits. This action cannot be undone.
+            This will permanently delete case R.O. <span className="font-semibold">{caseRecord.roNumber}</span>, all its associated exhibits, and remove its link from any associated suspects. This action cannot be undone.
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
@@ -171,3 +121,4 @@ const CaseCellActions = ({ row, table }: {
     </AlertDialog>
   );
 };
+

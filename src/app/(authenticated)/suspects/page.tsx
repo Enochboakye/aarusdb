@@ -1,74 +1,68 @@
-
-"use client";
-import React, { useState, useEffect, useCallback, Suspense } from 'react'; // Added React and Suspense
-import { PlusCircle, Loader2, Users } from 'lucide-react';
-import { PageContainer } from '@/components/page-container';
-import { DataTable } from '@/components/data-table';
-import { columns } from './columns'; 
+"use client"
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import type { Suspect } from '@/types/suspect';
 import { Button } from '@/components/ui/button';
-import Link from 'next/link';
+import { PlusCircle, Loader2, Users } from 'lucide-react';
+import { PageContainer } from '@/components/page-container';
 import { toast } from '@/hooks/use-toast';
-import { fetchSuspectsAction } from './actions'; 
-import { useSearchParams } from 'next/navigation';
+import { fetchSuspectsAction } from './actions';
+import {useRouter} from 'next/navigation'
+import ClientDataGrid from '@/components/client-data-grid';
+import {GridFilterModel, GridColDef} from '@mui/x-data-grid';
+import actionColumn from './columns';
+// Convert TanStack columns to MUI columns
+const muiColumns: GridColDef[] = [
+  {
+    field: 'id',
+    headerName: 'ID',
+    width: 50,
+    hideable: true, // Hide the ID column but keep it for internal use
+  },
+  {
+    field: 'fullName',
+    headerName: 'Full Name',
+    width: 300
+  },
+  {
+    field: 'gender',
+    headerName: 'Gender',
+    width:100
+  },
+  {
+    field: 'nationality',
+    headerName: 'Nationality',
+    width: 150
+  }
+];
 
-function SuspectsPageContent() {
-  const searchParams = useSearchParams();
-  const initialSearchQuery = searchParams.get('q');
+const SuspectsPageContent = ()=> {
+    const [suspects, setSuspects] = useState<Suspect[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [filterModel, setFilterModel] = useState<GridFilterModel>()
 
-  const [suspects, setSuspects] = useState<Suspect[]>([]);
-  const [loading, setLoading] = useState(true); 
-  const [filter, setFilter] = useState(initialSearchQuery || '');
+    const fetchSuspects = useCallback(async()=>{
+        try {
+            const fetchedSuspects = await fetchSuspectsAction();
+            setSuspects(fetchedSuspects)
+        } catch (error) {
+            console.error("Error fetching suspects:", error);
+            toast({
+                title: "Error",
+                description: "Failed to load suspect records. Please try again.",
+                variant: "destructive",
+            }); 
+            setSuspects([])
+        } finally {
+            setLoading(false);
+        }
+    }, []);
 
-  const fetchSuspects = useCallback(async () => {
-    setLoading(true);
-    try {
-      const fetchedSuspects = await fetchSuspectsAction(); 
-      
-      let filteredSuspects = fetchedSuspects;
-      if (filter) { 
-        const lowercasedFilter = filter.toLowerCase();
-        filteredSuspects = fetchedSuspects.filter(s => 
-          (s.fullName && s.fullName.toLowerCase().includes(lowercasedFilter)) ||
-          (s.nickname && s.nickname.toLowerCase().includes(lowercasedFilter)) ||
-          (s.gender && s.gender.toLowerCase().includes(lowercasedFilter)) ||
-          (s.nationality && s.nationality.toLowerCase().includes(lowercasedFilter)) ||
-          (s.residentialAddress && s.residentialAddress.toLowerCase().includes(lowercasedFilter)) ||
-          (s.occupation && s.occupation.toLowerCase().includes(lowercasedFilter)) ||
-          (s.assignedInvestigator && s.assignedInvestigator.toLowerCase().includes(lowercasedFilter)) ||
-          (s.offences && s.offences.some(off => off.toLowerCase().includes(lowercasedFilter))) ||
-          (s.phoneNumbers && s.phoneNumbers.some(pn => pn.includes(lowercasedFilter))) ||
-          (s.custodyStatus && s.custodyStatus.toLowerCase().includes(lowercasedFilter))
-        );
-      }
-      setSuspects(filteredSuspects);
-    } catch (error) {
-      console.error("Error fetching suspects:", error);
-      toast({
-        title: "Error",
-        description: "Failed to load suspect records. Please try again.",
-        variant: "destructive",
-      });
-      setSuspects([]); 
-    } finally {
-      setLoading(false);
-    }
-  }, [filter]); 
+    useEffect(()=> {
+        setLoading(true);
+        fetchSuspects();
+    }, [fetchSuspects]);
 
-  useEffect(() => {
-    fetchSuspects();
-  }, [fetchSuspects]); 
-
-  useEffect(() => {
-    const queryParam = searchParams.get('q');
-    if (queryParam !== null) {
-      if (queryParam !== filter) {
-        setFilter(queryParam);
-      }
-    }
-  }, [searchParams, filter]);
-
-  return (
+    return (
     <>
       {loading ? (
         <div className="flex justify-center items-center h-64">
@@ -76,23 +70,41 @@ function SuspectsPageContent() {
           <p className="ml-4 text-lg">Loading suspect records...</p>
         </div>
       ) : (
-        <DataTable 
-          columns={columns} 
-          data={suspects}
-          filterInputPlaceholder="Search suspects on this page..."
-          onFilterChange={setFilter} 
-          filterValue={filter}
-          meta={{
-            refreshData: fetchSuspects
-          }}
-        />
+        <>
+          <div>
+            <input
+              type="text"
+              placeholder="Search"
+              onChange={(e)=> setFilterModel({
+                items:[
+                  {
+                    field: "fullName",
+                    operator: "contains",
+                    value: e.target.value,
+                  },
+                ],
+              })}
+              className="border p-2 mb-4 w-full rounded-md shadow-md"
+            />
+          </div>
+          <ClientDataGrid 
+            className="datagrid" 
+            rows={suspects}
+            loading={loading}
+            columns={[...muiColumns, ...actionColumn]}
+            pageSizeOptions={[5,100]} 
+            filterModel={filterModel}
+            onFilterModelChange={setFilterModel}
+            checkboxSelection
+          />
+        </>
       )}
     </>
   );
 }
 
-
 export default function SuspectsPage() {
+ const router = useRouter()
   return (
     <PageContainer title="Suspect Database">
       <div className="flex justify-between items-center mb-6 -mt-4">
@@ -105,10 +117,10 @@ export default function SuspectsPage() {
             View, add, and manage suspect information. Use the search to filter records.
           </p>
         </div>
-        <Button asChild>
-          <Link href="/suspects/new">
+        <Button asChild onClick={()=> router.push("/suspects/new")}>
+          <div className="flex items-center">
             <PlusCircle className="mr-2 h-4 w-4" /> Add New Suspect
-          </Link>
+          </div>
         </Button>
       </div>
       <div className="space-y-6">
@@ -124,3 +136,5 @@ export default function SuspectsPage() {
     </PageContainer>
   );
 }
+
+

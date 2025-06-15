@@ -1,4 +1,5 @@
-import { Database, Home, Briefcase, UserPlus2, FilePlus, ScrollText } from "lucide-react"
+import {User, Database, Home, Briefcase, UserPlus2, FilePlus, ScrollText } from "lucide-react"
+import {SignOutButton} from '@/components/SignOutButton'
 
 import {
   Sidebar,
@@ -9,6 +10,7 @@ import {
   SidebarMenu,
   SidebarMenuButton,
   SidebarMenuItem,
+  SidebarFooter,
 } from "@/components/ui/sidebar"
 
 // Menu items.
@@ -43,6 +45,11 @@ const items = [
     url: "/audit-log",
     icon: ScrollText,
   },
+  {
+    title: "Account",
+    url: "/user-profile",
+    icon: User,
+  },
 ]
 
 export function AppSidebar() {
@@ -50,15 +57,15 @@ export function AppSidebar() {
     <Sidebar>
       <SidebarContent>
         <SidebarGroup>
-          <SidebarGroupLabel>Application</SidebarGroupLabel>
+          <SidebarGroupLabel><span className="text-blue-600 text-xl font-extrabold mb-4">AARU</span></SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
-                <SidebarMenuItem key={item.title}>
+                <SidebarMenuItem key={item.title} className="mb-4">
                   <SidebarMenuButton asChild>
                     <a href={item.url}>
-                      <item.icon />
-                      <span>{item.title}</span>
+                      <item.icon className="text-xl text-pink-700"/>
+                      <span className="text-xl font-bold">{item.title}</span>
                     </a>
                   </SidebarMenuButton>
                 </SidebarMenuItem>
@@ -67,6 +74,9 @@ export function AppSidebar() {
           </SidebarGroupContent>
         </SidebarGroup>
       </SidebarContent>
+      <SidebarFooter>
+        <SignOutButton />
+      </SidebarFooter>
     </Sidebar>
   )
 }

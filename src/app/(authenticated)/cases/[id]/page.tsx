@@ -212,9 +212,8 @@ export default function ViewCasePage() {
           <Card>
             <CardHeader><CardTitle className="text-lg flex items-center"><UserSquare className="mr-2 h-5 w-5"/>Complainant</CardTitle></CardHeader>
             <CardContent>
-                <DetailItem icon={UserIcon} label="Name" value={caseData.complainant.name}/>
-                {caseData.complainant.contact && <DetailItem icon={Phone} label="Contact" value={caseData.complainant.contact}/>}
-                {caseData.complainant.address && <DetailItem icon={MapPin} label="Address" value={caseData.complainant.address} isLongText/>}
+                <DetailItem icon={UserIcon} label="Name" value={caseData.complainant}/>
+               
                 {/* Statement Summary is not available on complainant */}
             </CardContent>
           </Card>
@@ -252,7 +251,6 @@ export default function ViewCasePage() {
                     <p className="font-semibold text-md">{witness.name}</p>
                     {witness.contact && <DetailItem icon={Phone} label="Contact" value={witness.contact} className="py-0.5"/>}
                     {witness.address && <DetailItem icon={MapPin} label="Address" value={witness.address} isLongText className="py-0.5"/>}
-                    {witness.statement && <DetailItem icon={FileText} label="Statement Summary" value={witness.statement} isLongText className="py-0.5"/>}
                     {index < caseData.witnesses.length - 1 && <Separator className="my-3"/>}
                   </div>
                 ))}

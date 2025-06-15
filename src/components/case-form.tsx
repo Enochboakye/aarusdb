@@ -1,4 +1,3 @@
-
 "use client";
 
 import { Formik, Form as FormikForm, Field, FieldArray, ErrorMessage, type FormikHelpers, type FormikErrors } from "formik";
@@ -25,7 +24,7 @@ import { useRouter } from "next/navigation";
 import { useToast } from "@/hooks/use-toast";
 import { useState, useEffect, useRef } from "react";
 import Image from "next/image";
-import { uploadExhibitAction, deleteExhibitAction, getSuspectMatchesForCaseRoAction } from "@/app/(authenticated)/cases/actions";
+import { uploadExhibitAction, deleteExhibitAction } from "@/app/(authenticated)/cases/actions";
 import { db } from "@/lib/firebase";
 import { collection, getDocs, query } from "firebase/firestore"; 
 import { Progress } from "@/components/ui/progress";
@@ -46,20 +45,16 @@ export interface ExhibitFormValues {
   isCameraCapture?: boolean | undefined;
 }
 
-export interface ComplainantFormValues {
-    name: string;
-    contact?: string | undefined;
-    address?: string | undefined;
-    statement?: string | undefined;
+export interface WitnessFormValues {
+  id: string;
+  name: string;
+  contact?: string;
+  address?: string;
+
 }
 
-export interface WitnessFormValues {
-    id?: string | undefined;
-    name: string;
-    contact?: string | undefined;
-    address?: string | undefined;
-    statement?: string | undefined;
-}
+
+
 
 export interface CaseLinkFormValues {
     id: string;
@@ -77,7 +72,7 @@ export interface CaseFormValues {
   dateReported: string; 
   dateOccurred?: string | undefined; 
   locationOfOffence?: string | undefined;
-  complainant: ComplainantFormValues;
+  complainant: string;
   witnesses: WitnessFormValues[]; 
   suspectLinks: CaseLinkFormValues[]; 
   exhibits: ExhibitFormValues[]; 
@@ -104,6 +99,8 @@ function parseRoNumber(roNumberString?: string): { year?: number; sequenceNumber
 }
 
 const formCurrentYear = getYear(new Date());
+const twentyFiveYearsAgo = new Date();
+twentyFiveYearsAgo.setFullYear(twentyFiveYearsAgo.getFullYear() - 25);
 
 export function CaseForm({ initialData, onSubmitForm, isEditMode = false }: CaseFormProps) {
   const router = useRouter();
@@ -118,7 +115,6 @@ export function CaseForm({ initialData, onSubmitForm, isEditMode = false }: Case
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [cameraStream, setCameraStream] = useState<MediaStream | null>(null);
   const [autoLinkMessage, setAutoLinkMessage] = useState<string | null>(null);
-  const [lastProcessedRoNumber, setLastProcessedRoNumber] = useState<string | null>(null);
 
   // State to hold the target index and setFieldValue for camera capture
   const [cameraTarget, setCameraTarget] = useState<{ index: number; setFieldValue: FormikSetFieldValue } | null>(null);
@@ -146,21 +142,21 @@ export function CaseForm({ initialData, onSubmitForm, isEditMode = false }: Case
     if (!dateString) return "";
     try {
       return isValid(parseISO(dateString)) ? format(parseISO(dateString), "yyyy-MM-dd") : "";
-    } catch { return ""; }
+    } catch {
+      return "";
+    }
   };
-  
-  const { year: initialYear, sequenceNumber: initialSequenceNumber } = parseRoNumber(initialData?.roNumber);
 
   const initialFormValues: CaseFormValues = initialData ? {
     ...initialData,
-    year: initialData.year || initialYear || formCurrentYear,
-    caseSequenceNumber: initialSequenceNumber || 0,
+    year: initialData.year || formCurrentYear,
+    caseSequenceNumber: parseRoNumber(initialData.roNumber).sequenceNumber || 0,
     dateReported: formatDateForInput(initialData.dateReported),
     dateOccurred: formatDateForInput(initialData.dateOccurred),
-    complainant: initialData.complainant || { name: "" }, // removed statement default
+    complainant: initialData.complainant || '',
     witnesses: initialData.witnesses?.map(w => ({...w, id: w.id || crypto.randomUUID() })) || [],
     suspectLinks: initialData.suspectLinks || [],
-    exhibits: initialData.exhibits?.map(ex => ({...ex, id: ex.id || crypto.randomUUID()})) || [],
+    exhibits: Array.isArray(initialData.exhibits) ? initialData.exhibits.map(ex => ({...ex, id: ex.id || crypto.randomUUID()})) : [],
   } : {
     year: formCurrentYear,
     caseSequenceNumber: 0,
@@ -172,7 +168,7 @@ export function CaseForm({ initialData, onSubmitForm, isEditMode = false }: Case
     dateReported: format(new Date(), "yyyy-MM-dd"),
     dateOccurred: "",
     locationOfOffence: "",
-    complainant: { name: "", contact: "", address: "", statement: "" },
+    complainant: "",
     witnesses: [],
     suspectLinks: [],
     exhibits: [],
@@ -189,21 +185,19 @@ export function CaseForm({ initialData, onSubmitForm, isEditMode = false }: Case
     if (!values.priority) errors.priority = "Priority is required.";
     if (!values.dateReported) errors.dateReported = "Date Reported is required.";
 
-    if (!values.complainant.name) {
-        errors.complainant = { ...errors.complainant, name: "Complainant name is required." };
+    if (!values.complainant) {
+        errors.complainant =  "Complainant name is required." ;
     }
     
     if (values.witnesses.length > 0) {
-        const witnessErrorsArray: (FormikErrors<WitnessFormValues> | undefined)[] = [];
-        values.witnesses.forEach((witness, index) => {
-            const witnessErrors: FormikErrors<WitnessFormValues> = {};
-            if(!witness.name) witnessErrors.name = "Witness name is required.";
-            if(Object.keys(witnessErrors).length > 0) witnessErrorsArray[index] = witnessErrors;
-            else witnessErrorsArray[index] = undefined;
-        });
-        if (witnessErrorsArray.some(e => !!e)) {
-          errors.witnesses = witnessErrorsArray.filter((e): e is FormikErrors<WitnessFormValues> => !!e);
-        }
+      const witnessErrorsArray: (FormikErrors<WitnessFormValues> | undefined)[] = [];
+      values.witnesses.forEach((witness, index)=> {
+        const witnessErrors: FormikErrors<WitnessFormValues> = {};
+        if(!witness.name) witnessErrors.name = "Witness name is required.";
+        if(Object.keys(witnessErrors).length > 0) witnessErrorsArray[index] = witnessErrors;
+        else witnessErrorsArray[index] = undefined;
+      });
+      if(witnessErrorsArray.some(e => !!e)) (errors.witnesses as FormikErrors<WitnessFormValues>[]) = witnessErrorsArray.filter((e): e is FormikErrors<WitnessFormValues> => !!e);
     }
 
     if (values.suspectLinks.length > 0) {
@@ -214,7 +208,7 @@ export function CaseForm({ initialData, onSubmitForm, isEditMode = false }: Case
             if(Object.keys(linkErrors).length > 0) linkErrorsArray[index] = linkErrors;
             else linkErrorsArray[index] = undefined;
         });
-        if (linkErrorsArray.some(e => !!e)) errors.suspectLinks = linkErrorsArray.filter((e): e is FormikErrors<CaseLinkFormValues> => !!e);
+        if (linkErrorsArray.some(e => !!e)) (errors.suspectLinks as (FormikErrors<CaseLinkFormValues> | undefined)[]) = linkErrorsArray;
     }
     
     if (values.exhibits.length > 0) {
@@ -227,7 +221,7 @@ export function CaseForm({ initialData, onSubmitForm, isEditMode = false }: Case
             if(Object.keys(exhibitErrors).length > 0) exhibitErrorsArray[index] = exhibitErrors;
             else exhibitErrorsArray[index] = undefined;
         });
-        if (exhibitErrorsArray.some(e => !!e)) errors.exhibits = exhibitErrorsArray as FormikErrors<ExhibitFormValues>[];
+        if (exhibitErrorsArray.some(e => !!e)) (errors.exhibits as FormikErrors<ExhibitFormValues>[]) = exhibitErrorsArray.filter((e): e is FormikErrors<ExhibitFormValues> => !!e);
     }
     return errors;
   };
@@ -333,7 +327,7 @@ export function CaseForm({ initialData, onSubmitForm, isEditMode = false }: Case
       router.refresh();
       if (!isEditMode) {
          resetForm({values: initialFormValues}); 
-         setLastProcessedRoNumber(null);
+         resetForm({values: initialFormValues}); 
       }
     } catch (error) {
       console.error("Case form submission error:", error);
@@ -343,64 +337,6 @@ export function CaseForm({ initialData, onSubmitForm, isEditMode = false }: Case
     }
   };
 
-  const performAutoLink = async (roNumber: string, currentLinks: CaseLinkFormValues[], setFieldValue: FormikSetFieldValue) => {
-    if (roNumber === lastProcessedRoNumber) return;
-    setLastProcessedRoNumber(roNumber);
-    setAutoLinkMessage(null);
-    try {
-      const matchedSuspects = await getSuspectMatchesForCaseRoAction(roNumber);
-      if (matchedSuspects.length > 0) {
-        const currentLinkIds = new Set(currentLinks.map(link => link.id));
-        const newLinksToSuggest = matchedSuspects
-          .filter(s => !currentLinkIds.has(s.id))
-          .map(s => ({ id: s.id, type: 'suspect' as const }));
-
-        if (newLinksToSuggest.length > 0) {
-          setFieldValue('suspectLinks', [...currentLinks, ...newLinksToSuggest]);
-          
-          const newSuspectDetails = matchedSuspects
-            .filter(ms => !allSuspects.some(as => as.id === ms.id))
-            .map(ms => ({ ...ms, linkedCaseRoNumbers: [roNumber] } as Suspect)); 
-
-          if (newSuspectDetails.length > 0) {
-            setAllSuspects(prev => [...prev, ...newSuspectDetails]);
-          }
-
-          const names = newLinksToSuggest.map(link => (allSuspects.find(s => s.id === link.id) || matchedSuspects.find(ms => ms.id === link.id))?.fullName || `ID: ${link.id.substring(0,6)}...`).join(', ');
-          setAutoLinkMessage(`Suggested linking: ${names} (based on R.O. ${roNumber}). Review and confirm.`);
-        }
-      }
-    } catch (error) { console.error("Error auto-linking suspects:", error); }
-  };
-
-  // Move these refs to the top level of the component
-  const setFieldValueRef = useRef<FormikSetFieldValue | null>(null);
-  const suspectLinksRef = useRef<CaseLinkFormValues[] | null>(null);
-  const currentCaseRoNumberRef = useRef<string | null>(null);
-
-  // This effect handles auto-linking suspects based on R.O. number
-  useEffect(() => {
-    if (!currentCaseRoNumberRef.current) {
-      setLastProcessedRoNumber(null);
-      setAutoLinkMessage(null);
-      return;
-    }
-    const debounceTimeout = setTimeout(() => {
-      if (
-        currentCaseRoNumberRef.current &&
-        setFieldValueRef.current &&
-        suspectLinksRef.current
-      ) {
-        performAutoLink(
-          currentCaseRoNumberRef.current,
-          suspectLinksRef.current,
-          setFieldValueRef.current
-        );
-      }
-    }, 700);
-    return () => clearTimeout(debounceTimeout);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [/* dependencies will be set in Formik render */]);
 
   return (
     <>
@@ -411,17 +347,14 @@ export function CaseForm({ initialData, onSubmitForm, isEditMode = false }: Case
       enableReinitialize
     >
       {(formikProps) => {
-        const { values, isSubmitting, setFieldValue, dirty, isValid: formikIsValid } = formikProps;
+        const { values, isSubmitting, dirty, isValid: formikIsValid, setFieldValue } = formikProps;
         const currentCaseRoNumber = (values.year && values.caseSequenceNumber && String(values.caseSequenceNumber).length > 0) 
           ? `${String(values.caseSequenceNumber).padStart(3, '0')}/${values.year}` 
           : null;
 
-        // Keep refs updated with latest values inside the callback
-        setFieldValueRef.current = setFieldValue;
-        suspectLinksRef.current = values.suspectLinks;
-        currentCaseRoNumberRef.current = currentCaseRoNumber;
-
-        // The useEffect for auto-linking is now outside the callback
+        // Move useEffect outside of Formik render callback
+        // We'll use a custom effect at the component level
+        // See below for the effect implementation
 
         return (
           <FormikForm className="space-y-10">
@@ -471,18 +404,30 @@ export function CaseForm({ initialData, onSubmitForm, isEditMode = false }: Case
                 <FormItem className="flex flex-col">
                   <Label htmlFor="dateReported">Date Reported *</Label>
                   <Popover>
-                    <PopoverTrigger asChild><Button variant="outline" id="dateReported" className={cn("w-full text-left", !values.dateReported && "text-muted-foreground")} disabled={isSubmitting}>
-                      {values.dateReported && isValid(parseISO(values.dateReported)) ? format(parseISO(values.dateReported), "PPP") : <span>Pick date</span>} <CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></PopoverTrigger>
-                    <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={values.dateReported ? parseISO(values.dateReported) : undefined} onSelect={(d) => setFieldValue('dateReported', d ? format(d, "yyyy-MM-dd"):"")} initialFocus /></PopoverContent>
-                  </Popover>
+                     <PopoverTrigger asChild>
+                      <Button type="button" variant="outline" id="dateOfBirth" className={cn("w-full pl-3 text-left font-normal", !values.dateReported && "text-muted-foreground")} disabled={isSubmitting}>
+                         {values.dateReported && isValid(parseISO(values.dateReported)) ? format(parseISO(values.dateReported), "PPP") : <span>Pick a date</span>}
+                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                         </Button>
+                        </PopoverTrigger>
+                       <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={values.dateReported ? parseISO(values.dateReported) : undefined} defaultMonth={values.dateReported ? parseISO(values.dateReported) : twentyFiveYearsAgo} onSelect={(date) => setFieldValue('dateOfBirth', date ? format(date, "yyyy-MM-dd") : "")} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus captionLayout="dropdown" fromYear={1900} toYear={new Date().getFullYear()} />
+                     </PopoverContent>
+                    </Popover>
                   <FormikErrorMessage name="dateReported"/>
                 </FormItem>
                  <FormItem className="flex flex-col">
                   <Label htmlFor="dateOccurred">Date Occurred (Optional)</Label>
-                  <Popover>
-                    <PopoverTrigger asChild><Button variant="outline" id="dateOccurred" className={cn("w-full text-left", !values.dateOccurred && "text-muted-foreground")} disabled={isSubmitting}>
-                      {values.dateOccurred && isValid(parseISO(values.dateOccurred)) ? format(parseISO(values.dateOccurred), "PPP") : <span>Pick date</span>} <CalendarIcon className="ml-auto h-4 w-4 opacity-50" /></Button></PopoverTrigger>
-                    <PopoverContent className="w-auto p-0"><Calendar mode="single" selected={values.dateOccurred ? parseISO(values.dateOccurred) : undefined} onSelect={(d) => setFieldValue('dateOccurred', d ? format(d, "yyyy-MM-dd"):"")} initialFocus /></PopoverContent>
+                   <Popover>
+                    <PopoverTrigger asChild>
+                      <Button type="button" variant="outline" id="dateOfBirth" className={cn("w-full pl-3 text-left font-normal", !values.dateOccurred && "text-muted-foreground")} disabled={isSubmitting}>
+                        {values.dateOccurred && isValid(parseISO(values.dateOccurred)) ? format(parseISO(values.dateOccurred), "PPP") : <span>Pick a date</span>}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={values.dateOccurred ? parseISO(values.dateOccurred) : undefined} defaultMonth={values.dateOccurred ? parseISO(values.dateOccurred) : twentyFiveYearsAgo} onSelect={(date) => setFieldValue('dateOccurred', date ? format(date, "yyyy-MM-dd") : "")} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus captionLayout="dropdown" fromYear={1900} toYear={new Date().getFullYear()} />
+                    </PopoverContent>
                   </Popover>
                   <FormikErrorMessage name="dateOccurred"/>
                 </FormItem>
@@ -503,24 +448,9 @@ export function CaseForm({ initialData, onSubmitForm, isEditMode = false }: Case
                 <h3 className="text-xl font-semibold text-foreground flex items-center"><UserSquare className="mr-2 h-5 w-5 text-primary" />Complainant Information</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8">
                     <FormItem>
-                        <Label htmlFor="complainant.name">Full Name *</Label>
-                        <Field as={Input} name="complainant.name" id="complainant.name" placeholder="Complainant's full name" disabled={isSubmitting}/>
-                        <FormikErrorMessage name="complainant.name"/>
-                    </FormItem>
-                    <FormItem>
-                        <Label htmlFor="complainant.contact">Contact (Phone/Email)</Label>
-                        <Field as={Input} name="complainant.contact" id="complainant.contact" placeholder="Complainant's contact" disabled={isSubmitting}/>
-                        <FormikErrorMessage name="complainant.contact"/>
-                    </FormItem>
-                    <FormItem className="md:col-span-2">
-                        <Label htmlFor="complainant.address">Address</Label>
-                        <Field as={Input} name="complainant.address" id="complainant.address" placeholder="Complainant's address" disabled={isSubmitting}/>
-                        <FormikErrorMessage name="complainant.address"/>
-                    </FormItem>
-                    <FormItem className="md:col-span-2">
-                        <Label htmlFor="complainant.statement">Brief Statement (Complainant)</Label>
-                        <Field as={Textarea} name="complainant.statement" id="complainant.statement" placeholder="Summary of complainant's statement" rows={3} disabled={isSubmitting}/>
-                        <FormikErrorMessage name="complainant.statement"/>
+                        <Label htmlFor="complainant">Full Name *</Label>
+                        <Field as={Input} name="complainant" id="complainant" placeholder="Complainant's full name" disabled={isSubmitting}/>
+                        <FormikErrorMessage name="complainant"/>
                     </FormItem>
                 </div>
             </div>
@@ -533,35 +463,74 @@ export function CaseForm({ initialData, onSubmitForm, isEditMode = false }: Case
                   </FieldArray>
               </div>
               <FieldArray name="witnesses">
-                {({ remove: removeWitness }) => (
-                  values.witnesses.map((witness, index) => (
-                    <div key={witness.id || index} className="space-y-4 p-4 border rounded-md shadow-sm relative">
-                      <Button type="button" variant="ghost" size="icon" className="absolute top-2 right-2 text-destructive" onClick={() => removeWitness(index)} disabled={isSubmitting}><Trash2 className="h-4 w-4" /></Button>
-                      <h4 className="font-medium text-md">Witness {index + 1}</h4>
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
-                        <FormItem>
-                          <Label htmlFor={`witnesses.${index}.name`}>Full Name *</Label>
-                          <Field as={Input} name={`witnesses.${index}.name`} id={`witnesses.${index}.name`} placeholder="Witness name" disabled={isSubmitting}/>
-                          <FormikErrorMessage name={`witnesses.${index}.name`}/>
-                        </FormItem>
-                        <FormItem>
-                          <Label htmlFor={`witnesses.${index}.contact`}>Contact</Label>
-                          <Field as={Input} name={`witnesses.${index}.contact`} id={`witnesses.${index}.contact`} placeholder="Witness contact" disabled={isSubmitting}/>
-                           <FormikErrorMessage name={`witnesses.${index}.contact`}/>
-                        </FormItem>
-                        <FormItem className="md:col-span-2">
-                          <Label htmlFor={`witnesses.${index}.address`}>Address</Label>
-                          <Field as={Input} name={`witnesses.${index}.address`} id={`witnesses.${index}.address`} placeholder="Witness address" disabled={isSubmitting}/>
-                           <FormikErrorMessage name={`witnesses.${index}.address`}/>
-                        </FormItem>
-                        <FormItem className="md:col-span-2">
-                          <Label htmlFor={`witnesses.${index}.statement`}>Brief Statement</Label>
-                          <Field as={Textarea} name={`witnesses.${index}.statement`} id={`witnesses.${index}.statement`} placeholder="Summary of witness statement" rows={2} disabled={isSubmitting}/>
-                          <FormikErrorMessage name={`witnesses.${index}.statement`}/>
-                        </FormItem>
+                {({ remove: removeWitness }: import("formik").FieldArrayRenderProps) => (
+                  values.witnesses.map(
+                    (
+                      witness: WitnessFormValues,
+                      index: number
+                    ) => (
+                      <div key={witness.id || index} className="space-y-4 p-4 border rounded-md shadow-sm relative">
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="icon"
+                          className="absolute top-2 right-2 text-destructive"
+                          onClick={() => removeWitness(index)}
+                          disabled={isSubmitting}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                        <h4 className="font-medium text-md">Witness {index + 1}</h4>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-4">
+                          <FormItem>
+                            <Label htmlFor={`witnesses.${index}.name`}>Full Name *</Label>
+                            <Field
+                              as={Input}
+                              name={`witnesses.${index}.name`}
+                              id={`witnesses.${index}.name`}
+                              placeholder="Witness name"
+                              disabled={isSubmitting}
+                            />
+                            <FormikErrorMessage name={`witnesses.${index}.name`} />
+                          </FormItem>
+                          <FormItem>
+                            <Label htmlFor={`witnesses.${index}.contact`}>Contact</Label>
+                            <Field
+                              as={Input}
+                              name={`witnesses.${index}.contact`}
+                              id={`witnesses.${index}.contact`}
+                              placeholder="Witness contact"
+                              disabled={isSubmitting}
+                            />
+                            <FormikErrorMessage name={`witnesses.${index}.contact`} />
+                          </FormItem>
+                          <FormItem className="md:col-span-2">
+                            <Label htmlFor={`witnesses.${index}.address`}>Address</Label>
+                            <Field
+                              as={Input}
+                              name={`witnesses.${index}.address`}
+                              id={`witnesses.${index}.address`}
+                              placeholder="Witness address"
+                              disabled={isSubmitting}
+                            />
+                            <FormikErrorMessage name={`witnesses.${index}.address`} />
+                          </FormItem>
+                          <FormItem className="md:col-span-2">
+                            <Label htmlFor={`witnesses.${index}.statement`}>Brief Statement</Label>
+                            <Field
+                              as={Textarea}
+                              name={`witnesses.${index}.statement`}
+                              id={`witnesses.${index}.statement`}
+                              placeholder="Summary of witness statement"
+                              rows={2}
+                              disabled={isSubmitting}
+                            />
+                            <FormikErrorMessage name={`witnesses.${index}.statement`} />
+                          </FormItem>
+                        </div>
                       </div>
-                    </div>
-                  ))
+                    )
+                  )
                 )}
               </FieldArray>
               {values.witnesses.length === 0 && <p className="text-sm text-muted-foreground">No witnesses added yet.</p>}
