@@ -1,4 +1,3 @@
-
 "use client"
 
 import { Formik, Form as FormikForm, Field, FieldArray, ErrorMessage, type FormikHelpers, type FormikErrors } from "formik";
@@ -56,7 +55,7 @@ export function SuspectForm({ initialData, onSubmitForm, isEditMode = false }: S
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [activeStream, setActiveStream] = useState<MediaStream | null>(null);
-
+  
   const [cameraCaptureActions, setCameraCaptureActions] = useState<{ setFieldValue: FormikSetFieldValue } | null>(null);
 
 
@@ -220,52 +219,32 @@ export function SuspectForm({ initialData, onSubmitForm, isEditMode = false }: S
     setProfileImagePreview(null);
   };
 
-  const openCameraDialog = useCallback((setFieldValueFromForm: FormikSetFieldValue) => {
+ const openCameraDialog = useCallback((setFieldValueFromForm: FormikSetFieldValue) => {
     setCameraCaptureActions({ setFieldValue: setFieldValueFromForm });
     setIsCameraDialogOpen(true);
-    setHasCameraPermission(null); // Reset permission status on dialog open
   }, []);
 
 
   useEffect(() => {
-    let streamToCleanUp: MediaStream | null = null;
-
-    if (isCameraDialogOpen) {
-      navigator.mediaDevices.getUserMedia({ video: true })
-        .then(mediaStream => {
-          streamToCleanUp = mediaStream;
-          setActiveStream(mediaStream);
-          setHasCameraPermission(true);
-          if (videoRef.current) {
-            videoRef.current.srcObject = mediaStream;
-          }
-        })
-        .catch(error => {
-          console.error('Error accessing camera:', error);
-          setHasCameraPermission(false);
-          setActiveStream(null);
-          toast({ variant: 'destructive', title: 'Camera Access Denied', description: 'Please enable camera permissions in your browser settings.' });
-        });
-    } else {
-      if (activeStream) {
-        activeStream.getTracks().forEach(track => track.stop());
-        setActiveStream(null);
-      }
-      if (videoRef.current) {
-        videoRef.current.srcObject = null;
-      }
-    }
-    return () => {
-      if (streamToCleanUp) {
-        streamToCleanUp.getTracks().forEach(track => track.stop());
-      }
+    if(isCameraDialogOpen && cameraCaptureActions !== null){
+      navigator.mediaDevices.getUserMedia({video:true})
+      .then(mediaStream => {setActiveStream(mediaStream); setHasCameraPermission(true);
+        if(videoRef.current) videoRef.current.srcObject = mediaStream;
+      }).catch(()=> {setHasCameraPermission(false); setActiveStream(null); toast({variant: 'destructive', title: 'Camera Access Denied'})});
     };
-  }, [isCameraDialogOpen, toast, activeStream]);
+  }, [isCameraDialogOpen, toast, cameraCaptureActions]);
 
   const handleCaptureImage = useCallback(() => {
-    if (videoRef.current && canvasRef.current && activeStream && cameraCaptureActions?.setFieldValue) {
+    if (videoRef.current && canvasRef.current && videoRef.current.srcObject && cameraCaptureActions?.setFieldValue) {
       const video = videoRef.current;
       const canvas = canvasRef.current;
+      
+      // Ensure video dimensions are available
+      if (video.videoWidth === 0 || video.videoHeight === 0) {
+        toast({ title: "Capture Error", description: "Camera not fully initialized. Please try again.", variant: "destructive" });
+        return;
+      }
+
       canvas.width = video.videoWidth;
       canvas.height = video.videoHeight;
       canvas.getContext('2d')?.drawImage(video, 0, 0, canvas.width, canvas.height);
@@ -275,7 +254,7 @@ export function SuspectForm({ initialData, onSubmitForm, isEditMode = false }: S
     } else {
         toast({ title: "Capture Error", description: "Could not capture image. Camera or form actions not ready.", variant: "destructive" });
     }
-  }, [activeStream, cameraCaptureActions, toast]);
+  }, [cameraCaptureActions, toast]);
 
   const twentyFiveYearsAgo = new Date();
   twentyFiveYearsAgo.setFullYear(twentyFiveYearsAgo.getFullYear() - 25);
@@ -546,8 +525,7 @@ export function SuspectForm({ initialData, onSubmitForm, isEditMode = false }: S
                     <Label htmlFor="custodyStatus">Custody Status *</Label>
                      <Select onValueChange={(value) => setFieldValue('custodyStatus', value)} value={values.custodyStatus ?? ""} disabled={formikSubmitting}>
                     <SelectTrigger id="custodyStatus"><SelectValue placeholder="Select custody status" /></SelectTrigger>
-                    <SelectContent>{CUSTODY_STATUS_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</  SelectItem>)}
-                    </SelectContent>
+                    <SelectContent>{CUSTODY_STATUS_OPTIONS.map(c => <SelectItem key={c.value} value={c.value}>{c.label}</SelectItem>)}</SelectContent>
                   </Select>
         <FormikErrorMessage name="custodyStatus" />
         <div className="mt-4">
