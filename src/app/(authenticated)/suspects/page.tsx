@@ -106,7 +106,7 @@ const SuspectsPageContent = ()=> {
 export default function SuspectsPage() {
  const router = useRouter()
   return (
-    <PageContainer title="Suspect Database">
+    <PageContainer>
       <div className="flex justify-between items-center mb-6 -mt-4">
         <div>
             <div className="flex items-center mb-1">

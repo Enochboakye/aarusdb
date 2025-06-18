@@ -1,4 +1,4 @@
-import {User, Database, Home, Briefcase, UserPlus2, FilePlus, ScrollText } from "lucide-react"
+import {User, Database, Home, Briefcase, UserPlus2, FilePlus, ScrollText,LayoutDashboard } from "lucide-react"
 import {SignOutButton} from '@/components/SignOutButton'
 
 import {
@@ -15,6 +15,11 @@ import {
 
 // Menu items.
 const items = [
+  {
+    title: "Dashboard",
+    url: "/admin",
+    icon: LayoutDashboard,
+  },
   {
     title: "Home",
     url: "/dashboard",

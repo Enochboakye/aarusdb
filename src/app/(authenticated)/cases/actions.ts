@@ -217,7 +217,6 @@ async function updateSuspectRecordsWithCaseLink(
   }
 }
 
-
 export async function createCaseAction(
   data: CaseFormValues
 ): Promise<Case> {

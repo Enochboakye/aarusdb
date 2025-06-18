@@ -142,7 +142,7 @@ export default function DataAnalysisDashboardPage() {
 
   if (loading) {
     return (
-      <PageContainer title="Police Operations Dashboard">
+      <PageContainer>
         <div className="flex justify-center items-center h-[calc(100vh-10rem)]">
           <Loader2 className="h-16 w-16 animate-spin text-primary" />
           <p className="ml-4 text-xl">Loading Dashboard Data...</p>
@@ -153,7 +153,7 @@ export default function DataAnalysisDashboardPage() {
 
   if (error) {
     return (
-       <PageContainer title="Police Operations Dashboard">
+       <PageContainer>
         <div className="flex flex-col items-center justify-center h-64 bg-destructive/10 p-6 rounded-lg border border-destructive">
           <AlertTriangle className="h-12 w-12 text-destructive mb-4" />
           <p className="text-lg text-destructive font-semibold">Error Loading Dashboard</p>
@@ -178,7 +178,7 @@ export default function DataAnalysisDashboardPage() {
 
 
   return (
-    <PageContainer title="Police Operations Dashboard">
+    <PageContainer className='justify-items-center items-center mt-4'>
       <div className="space-y-6 max-w-5xl mx-auto">
         <div className="grid gap-4 grid-cols-1 sm:grid-cols-2 md:grid-cols-3">
           <StatCard 
@@ -186,7 +186,7 @@ export default function DataAnalysisDashboardPage() {
             value={stats.totalCases} 
             icon={Briefcase} 
             description="All registered cases" 
-            className="bg-pink-600" 
+            className="bg-pink-600/30 backdrop-blur-md backdrop-opacity-60 " 
             textColorClassName="text-primary-foreground" 
             mutedColorClassName="text-primary-foreground/80" 
             iconColorClassName="text-primary-foreground" 

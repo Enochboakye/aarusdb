@@ -1,8 +1,9 @@
-import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar"
+import { SidebarProvider} from "@/components/ui/sidebar"
 import { AppSidebar } from "@/components/app-sidebar"
 import {ToastContainer} from 'react-toastify';
-import {ModeToggle} from '@/components/ui/mode-toggle'
 import { ThemeProvider } from '@/components/theme-provider'
+import Topbar from '@/components/ui/topbar'
+
 export default function Layout({ children }: { children: React.ReactNode }) {
   return (
     <ThemeProvider
@@ -14,8 +15,7 @@ export default function Layout({ children }: { children: React.ReactNode }) {
     <SidebarProvider>
       <AppSidebar />
       <main>
-        <SidebarTrigger />
-        <ModeToggle/>
+         <Topbar />
         <ToastContainer />
         {children}
       </main>

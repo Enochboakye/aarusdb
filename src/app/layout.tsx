@@ -5,11 +5,12 @@ import {
   ClerkProvider,
   SignInButton,
   SignUpButton,
-  UserButton,
   SignedIn,
   SignedOut,
 } from '@clerk/nextjs'
 import "./globals.css";
+import VerifyAuthProvider from "@/components/verifyAuthProvider";
+
 
 const inter = Inter({
   subsets: ["latin"],
@@ -36,6 +37,7 @@ export default function RootLayout({
   return (
     <html lang="en" suppressHydrationWarning>
       <body className={`${inter.className} antialiased`}>
+        <VerifyAuthProvider>
         <ClerkProvider>
           <ThemeProvider
             attribute="class"
@@ -43,20 +45,20 @@ export default function RootLayout({
             enableSystem
             disableTransitionOnChange
           >
-            <div suppressHydrationWarning>
-              <header className="flex justify-center items-center p-4 gap-4 h-16">
+            <div suppressHydrationWarning >
+              <header className="flex justify-center items-center p-4 gap-4 ">
                 <SignedOut>
-                  <SignInButton mode="modal" />
-                  <SignUpButton mode="modal" />
-                </SignedOut>
+                  <SignInButton/>
+                  <SignUpButton/>              
+                    </SignedOut>
                 <SignedIn>
-                  <UserButton afterSignOutUrl="/sign-in" />
                 </SignedIn>
               </header>
               {children}
             </div>
           </ThemeProvider>
         </ClerkProvider>
+      </VerifyAuthProvider>
       </body>
     </html>
   )
