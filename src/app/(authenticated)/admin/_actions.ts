@@ -32,3 +32,16 @@ export async function removeRole(formData: FormData) {
     console.error('Error removing role:', err)
   }
 }
+
+export async function deleteUser(formData: FormData){
+  const userId = formData.get('id') as string
+  const client = await clerkClient()
+
+  try {
+    await client.users.deleteUser(userId)
+    return { message: 'User deleted' }
+  } catch (error) {
+    console.log(error)
+    return { error: 'Error deleting user' }
+  }
+}
