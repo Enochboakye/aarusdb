@@ -123,7 +123,7 @@ function CasesPageContent() {
 export default function CasesPage() {
   const router = useRouter();
   return (
-    <PageContainer>
+    <PageContainer className="mt-8">
       <div className="flex justify-between items-center mb-6 -mt-4">
         <div>
             <div className="flex items-center mb-1">
