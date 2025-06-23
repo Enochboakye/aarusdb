@@ -92,7 +92,7 @@ const SuspectsPageContent = ()=> {
             rows={suspects}
             loading={loading}
             columns={[...muiColumns, ...actionColumn]}
-            pageSizeOptions={[5,100]} 
+            pageSizeOptions={[2, 3,4,5,10,100]} 
             filterModel={filterModel}
             onFilterModelChange={setFilterModel}
             checkboxSelection
@@ -106,7 +106,7 @@ const SuspectsPageContent = ()=> {
 export default function SuspectsPage() {
  const router = useRouter()
   return (
-    <PageContainer>
+    <PageContainer className='mt-8'>
       <div className="flex justify-between items-center mb-6 -mt-4">
         <div>
             <div className="flex items-center mb-1">

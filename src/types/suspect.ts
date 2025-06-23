@@ -63,7 +63,7 @@ export interface Suspect {
 }
 
 // Form values type, largely mirrors Suspect but profileImageUrl can be data URI initially
-export interface SuspectFormValues {
+export type SuspectFormValues = {
   fullName: string;
   nickname?: string;
   gender: Gender;

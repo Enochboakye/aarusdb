@@ -182,7 +182,7 @@ export default function ViewSuspectPage() {
 
   if (loading) {
     return (
-      <PageContainer title="Loading Suspect Profile...">
+      <PageContainer>
         <div className="flex justify-center items-center h-64">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
         </div>
@@ -191,13 +191,13 @@ export default function ViewSuspectPage() {
   }
 
   if (!suspect) {
-    return <PageContainer title="Suspect Not Found"><p>The requested suspect could not be found.</p></PageContainer>;
+    return <PageContainer><p>The requested suspect could not be found.</p></PageContainer>;
   }
 
   return (
+    <>
     <PageContainer
-      title={`Suspect Profile: ${suspect.fullName}`}
-      className="max-w-6xl mx-auto"
+      className="max-w-6xl mx-auto mt-4"
     >
        <div className="flex space-x-2 mb-6 justify-end -mt-16 pt-1 pr-1 sticky top-16 bg-background py-3 z-30">
           <Button asChild>
@@ -216,7 +216,7 @@ export default function ViewSuspectPage() {
         <div className="lg:col-span-1 space-y-6">
           <Card>
             <CardHeader className="items-center">
-                <CardTitle className="text-2xl font-bold text-primary text-center">{suspect.fullName}</CardTitle>
+                <CardTitle className="text-2xl font-bold text-primary text-center mt-12">{suspect.fullName}</CardTitle>
                 {suspect.nickname && <p className="text-lg text-muted-foreground text-center">&quot;{suspect.nickname}&quot;</p>}
                  <Badge variant={suspect.gender === 'Male' ? 'default' : suspect.gender === 'Female' ? 'secondary' : 'outline'} className="mt-2">
                     {suspect.gender}
@@ -339,6 +339,7 @@ export default function ViewSuspectPage() {
       
       {/* Removed hidden SuspectPrintLayout for react-to-print */}
     </PageContainer>
+    </>
   );
 }
     

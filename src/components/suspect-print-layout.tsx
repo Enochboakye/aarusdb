@@ -1,11 +1,10 @@
 
 "use client";
-import React from 'react'; // Keep React import
+import React from 'react';
 import type { Suspect } from '@/types/suspect';
 import { format, parseISO } from 'date-fns';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
-import { Briefcase,  Mail, MapPin, User,  ShieldAlert, Gavel, Palette, Sparkles, Eye, Phone as PhoneIcon,  Ruler, Link2 } from 'lucide-react';
+import { Briefcase,  Gavel, Palette, Sparkles, Eye as EyeIcon, Ruler, Phone, Mail, MapPin } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import Image from 'next/image';
 
@@ -15,15 +14,14 @@ interface SuspectPrintLayoutProps {
 
 interface PrintDetailItemProps {
   icon?: React.ElementType;
-  label: string;
+  label?: string;
   value?: string | number | boolean | null | string[];
   isBoolean?: boolean;
   className?: string;
-  isLongText?: boolean;
   isList?: boolean;
 }
 
-const PrintDetailItem: React.FC<PrintDetailItemProps> = ({ icon: Icon, label, value, isBoolean = false, className, isLongText = false, isList = false }) => {
+const PrintDetailItem: React.FC<PrintDetailItemProps> = ({ icon: Icon, label, value, isBoolean = false, className, isList = false }) => {
   if (value === null || typeof value === 'undefined' || (Array.isArray(value) && value.length === 0) || (typeof value === 'string' && value.trim() === '')) return null;
 
   let displayValue: React.ReactNode;
@@ -38,12 +36,12 @@ const PrintDetailItem: React.FC<PrintDetailItemProps> = ({ icon: Icon, label, va
       </ul>
     );
   } else if (Array.isArray(value)) { 
-    displayValue = value.map(item => item.replace(/\s*\([\w\s]+\)$/, '')).join(', ');
-  } else if (typeof value === 'string' && (label.toLowerCase().includes("date") || label.toLowerCase().includes("created at") || label.toLowerCase().includes("updated at"))) {
+    displayValue = value.join(', ');
+  } else if (typeof value === 'string' && typeof label === 'string' && (label.toLowerCase().includes("date") || label.toLowerCase().includes("created at") || label.toLowerCase().includes("updated at"))) {
     try {
       displayValue = format(parseISO(value), "PPP p");
       if (label.toLowerCase().includes("date of birth")) displayValue = format(parseISO(value), "PPP");
-    } catch  { 
+    } catch{ 
       displayValue = value;
      }
   } else {
@@ -51,208 +49,133 @@ const PrintDetailItem: React.FC<PrintDetailItemProps> = ({ icon: Icon, label, va
   }
 
   return (
-    <div className={cn("flex items-start space-x-2 py-1.5 print:py-1", className)}>
-      {Icon && <Icon className="h-4 w-4 text-gray-700 mt-0.5 print:text-black flex-shrink-0" />}
-      <div>
-        <p className="text-xs font-semibold text-gray-600 print:text-black print:font-medium">{label}:</p>
-        {isLongText || (isList && Array.isArray(value) && value.length > 0) || (Array.isArray(value) && value.length > 3) ? ( 
-          <div className={cn("text-sm text-gray-800 print:text-black", isLongText && "whitespace-pre-wrap")}>{displayValue}</div>
-        ) : (
-          <p className="text-sm text-gray-800 print:text-black">{displayValue}</p>
-        )}
-      </div>
+    <div className={cn("text-sm text-gray-800 print:text-black", className)}>
+        {Icon && <Icon className="h-4 w-4 mr-2 inline-block" />}
+        {label && <span className="font-semibold text-gray-600 print:font-medium">{label}: </span>}
+        {displayValue}
     </div>
   );
 };
 
-const PrintImageDisplay: React.FC<{ title: string; imageUrl?: string; hint: string }> = ({ title, imageUrl, hint }) => (
-    <div className="flex flex-col items-center text-center p-1">
-        <p className="text-xs font-medium text-gray-600 print:text-black mb-0.5">{title}</p>
-        <Image
-            src={imageUrl || "https://placehold.co/100x100.png"}
-            alt={title}
-            width={100}
-            height={100}
-            className="rounded border border-gray-300 shadow-sm object-cover aspect-square print:w-24 print:h-24"
-            data-ai-hint={hint}
-            style={{ objectFit: 'cover' }}
-        />
-    </div>
+
+const Section: React.FC<{ title: string; children: React.ReactNode; className?: string }> = ({ title, children, className }) => (
+  <div className={cn("mb-4 print:mb-3", className)}>
+    <h3 className="text-sm print:text-xs font-bold text-primary print:text-black uppercase tracking-wider border-b-2 border-primary print:border-black pb-1 mb-2 print:mb-1.5">
+      {title}
+    </h3>
+    <div className="space-y-1.5 print:space-y-1">{children}</div>
+  </div>
 );
 
-// Removed React.forwardRef and ref prop
-export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect }) => {
-  let displayPhoneNumbers: string[] = [];
-  if (suspect.phoneNumbers && Array.isArray(suspect.phoneNumbers)) {
-    displayPhoneNumbers = suspect.phoneNumbers;
-  } else if ('phoneNumber' in suspect && typeof (suspect as { phoneNumber?: string }).phoneNumber === 'string') { 
-    displayPhoneNumbers = [(suspect as { phoneNumber: string }).phoneNumber];
-  }
 
-  let displayOffences: string[] = [];
-  if (suspect.offences && Array.isArray(suspect.offences)) {
-    displayOffences = suspect.offences;
-  } else if ('offence' in suspect && typeof (suspect as { offence?: string }).offence === 'string') {
-    displayOffences = [(suspect as { offence: string }).offence];
-  }
-  
-  const imageToDisplay = suspect.profileImageUrl || "https://placehold.co/120x120.png";
+export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect }) => {
+  const imageToDisplay = suspect.profileImageUrl && (suspect.profileImageUrl.startsWith('http') || suspect.profileImageUrl.startsWith('data:'))
+    ? suspect.profileImageUrl
+    : "https://placehold.co/150x150.png";
 
   return (
-    <>
-    <div className="p-4 bg-white text-black font-sans print:p-0" id="print-layout-content">
-      <header className="text-center mb-6 print:mb-4 border-b pb-4 print:pb-2">
-        <h1 className="text-xl print:text-lg font-bold text-primary print:text-black mt-4">AARUSDB - Suspect Profile</h1>
-        <p className="text-sm text-muted-foreground print:text-gray-600">Anti-Armed Robbery Unit Suspect Database</p>
+    <div className="p-4  font-sans print:p-0" id="print-layout-content">
+      <header className="text-center mb-4 print:mb-2">
+       <h1 className="text-3xl text-extrabold">ANTI ARMED ROBBERY UNIT</h1>
       </header>
+      
+      <Separator className="my-3 print:my-2 bg-gray-400" />
+        <div className="text-center mb-4 print:mb-2">
+           <h1 className="text-2xl print:text-2xl font-bold text-primary">{suspect.fullName}</h1>
+        {suspect.nickname && <p className="text-lg print:text-base text-gray-600 print:text-gray-700">&quot;{suspect.nickname}&quot;</p>}
+        </div>
+      <main>
+        <div className="flex justify-center mb-4 print:mb-3">
+            <Image
+              src={imageToDisplay}
+              alt="Suspect Profile"
+              width={150} height={150}
+              className="rounded-md border-2 border-gray-300 shadow-md object-cover aspect-square print:w-[130px] print:h-[130px]"
+              style={{ objectFit: 'cover' }}
+            />
+        </div>
+      
+        <div className="grid grid-cols-2 gap-x-6 print:gap-x-4">
+            {/* --- Left Column --- */}
+            <div className="space-y-4 print:space-y-3">
+                <Section title="Personal Details">
+                    <PrintDetailItem label="Date of Birth" value={suspect.dateOfBirth} />
+                    <PrintDetailItem label="Gender" value={suspect.gender} />
+                    <PrintDetailItem label="Nationality" value={suspect.nationality} />
+                    <PrintDetailItem label="Place of Birth" value={suspect.placeOfBirth} />
+                    <PrintDetailItem label="Hometown" value={suspect.hometown} />
+                    <PrintDetailItem label="Marital Status" value={suspect.maritalStatus} />
+                </Section>
 
-      <div className="space-y-4 print:space-y-3">
-        <Card className="print:shadow-none print:border-gray-300 print:rounded-none mb-8">
-          <CardHeader className="print:pb-2 print:px-0">
-            <CardTitle className="text-lg print:text-base font-semibold text-primary print:text-black flex items-center">
-              <User className="mr-2 h-5 w-5 print:h-4 print:w-4" /> Basic Information
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 md:grid-cols-[150px_1fr] print:grid-cols-[120px_1fr] gap-4 print:gap-2 items-start print:pt-2 print:px-0">
-            <div className="col-span-1 flex flex-col items-center print:items-start">
-                <PrintImageDisplay title="Suspect Image" imageUrl={imageToDisplay} hint="person mugshot" />
+                <Section title="Physical Description">
+                    <PrintDetailItem icon={Ruler} label="Height" value={suspect.height} />
+                    <PrintDetailItem icon={Palette} label="Skin Tone" value={suspect.skinTone} />
+                    <PrintDetailItem icon={Sparkles} label="Hair Style" value={suspect.hairStyle} />
+                    <PrintDetailItem icon={Palette} label="Hair Color" value={suspect.hairColor} />
+                    <PrintDetailItem icon={EyeIcon} label="Eye Color" value={suspect.eyeColor} />
+                    <Separator className="my-1.5 print:my-1" />
+                    <p className="font-semibold text-gray-600 print:font-medium text-xs">Physical Marks</p>
+                    <PrintDetailItem value={suspect.physicalMarks} isList />
+                </Section>
+
+                 <Section title="Lifestyle">
+                    <PrintDetailItem label="Smokes" value={suspect.smokes} isBoolean />
+                    <PrintDetailItem label="Drinks Alcohol" value={suspect.drinksAlcohol} isBoolean />
+                </Section>
             </div>
-            <div className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-4 print:gap-x-2">
-              <PrintDetailItem label="Full Name" value={suspect.fullName} className="font-bold text-base print:text-sm" />
-              {suspect.nickname && <PrintDetailItem label="Nickname/Alias" value={suspect.nickname} />}
-              <PrintDetailItem label="Gender" value={suspect.gender} />
-              <PrintDetailItem label="Date of Birth" value={suspect.dateOfBirth} />
-              <PrintDetailItem label="Nationality" value={suspect.nationality} />
-              <PrintDetailItem label="Place of Birth" value={suspect.placeOfBirth} />
-              <PrintDetailItem label="Hometown" value={suspect.hometown} />
+
+            {/* --- Right Column --- */}
+            <div className="space-y-4 print:space-y-3">
+                <Section title="Criminal Profile">
+                    <h4 className="text-md print:text-sm font-semibold text-gray-800 print:text-black mb-1 flex items-center"><Gavel className="h-4 w-4 mr-2 text-red-700 print:text-black"/>Nature of Offence(s)</h4>
+                    {(suspect.offences && suspect.offences.length > 0) ? (
+                    <PrintDetailItem value={suspect.offences} isList />
+                    ) : (
+                    <p className="text-sm text-gray-500">No offences listed.</p>
+                    )}
+                    <Separator className="my-2.5 print:my-1.5" />
+                    <PrintDetailItem label="Assigned Investigator" value={suspect.assignedInvestigator} />
+                </Section>
+
+                <Section title="Contact Information">
+                    <PrintDetailItem icon={Phone} label="Phone Number(s)" value={suspect.phoneNumbers} isList />
+                    <PrintDetailItem icon={Mail} label="Email Address" value={suspect.emailAddress} />
+                    <PrintDetailItem icon={MapPin} label="Residential Address" value={suspect.residentialAddress} />
+                </Section>
+
+                <Section title="Background">
+                    <h4 className="text-md print:text-sm font-semibold text-gray-800 print:text-black mb-1 flex items-center"><Briefcase className="h-4 w-4 mr-2"/>Occupation & Education</h4>
+                    <PrintDetailItem label="Occupation" value={suspect.occupation} />
+                    <PrintDetailItem label="Education Level" value={suspect.educationLevel} />
+                    <Separator className="my-2.5 print:my-1.5" />
+                    <PrintDetailItem label="Languages Spoken" value={suspect.languagesSpoken} />
+                </Section>
             </div>
-          </CardContent>
-        </Card>
-        
-        <Separator className="my-3 print:my-2 mb-4" />
-
-        <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-4 print:gap-3">
-          <Card className="print:shadow-none print:border-gray-300 print:rounded-none mb-8">
-            <CardHeader className="print:pb-2 print:px-0">
-              <CardTitle className="text-base print:text-sm font-semibold text-primary print:text-black flex items-center">
-                <Mail className="mr-2 h-5 w-5 print:h-4 print:w-4" /> Contact & Identification
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="print:pt-2 print:px-0">
-              <PrintDetailItem icon={PhoneIcon} label="Phone Numbers" value={displayPhoneNumbers} isList />
-              <PrintDetailItem label="Email Address" value={suspect.emailAddress} />
-              <PrintDetailItem label="Languages Spoken" value={suspect.languagesSpoken} />
-            </CardContent>
-          </Card>
-
-          <Card className="print:shadow-none print:border-gray-300 print:rounded-none mb-8">
-            <CardHeader className="print:pb-2 print:px-0">
-              <CardTitle className="text-base print:text-sm font-semibold text-primary print:text-black flex items-center">
-                <User className="mr-2 h-5 w-5 print:h-4 print:w-4" /> Appearance & Lifestyle
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="print:pt-2 print:px-0">
-              <PrintDetailItem icon={Ruler} label="Height" value={suspect.height} />
-              <PrintDetailItem icon={Palette} label="Skin Tone" value={suspect.skinTone} />
-              <PrintDetailItem icon={Sparkles} label="Hair Style" value={suspect.hairStyle} />
-              <PrintDetailItem icon={Palette} label="Hair Color" value={suspect.hairColor} />
-              <PrintDetailItem icon={Eye} label="Eye Color" value={suspect.eyeColor} />
-              <PrintDetailItem label="Physical Marks" value={suspect.physicalMarks} isList />
-              <Separator className="my-2 print:my-1" />
-              <PrintDetailItem label="Smokes" value={suspect.smokes} isBoolean />
-              <PrintDetailItem label="Drinks Alcohol" value={suspect.drinksAlcohol} isBoolean />
-            </CardContent>
-          </Card>
         </div>
 
-        <Separator className="my-3 print:my-2 mb-8" />
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 print:grid-cols-2 gap-4 print:gap-3"></div>
-          <Card className="print:shadow-none print:border-gray-300 print:rounded-none ">
-            <CardHeader className="print:pb-2 print:px-0">
-              <CardTitle className="text-base print:text-sm font-semibold text-primary print:text-black flex items-center">
-                <Briefcase className="mr-2 h-5 w-5 print:h-4 print:w-4" /> Professional Details
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="print:pt-2 print:px-0">
-              <PrintDetailItem label="Occupation" value={suspect.occupation} />
-              <PrintDetailItem label="Level of Education" value={suspect.educationLevel} />
-              <PrintDetailItem label="Marital Status" value={suspect.maritalStatus} />
-            </CardContent>
-          </Card>
-
-          <Card className="print:shadow-none print:border-gray-300 print:rounded-none">
-            <CardHeader className="print:pb-2 print:px-0">
-              <CardTitle className="text-base print:text-sm font-semibold text-primary print:text-black flex items-center">
-                <MapPin className="mr-2 h-5 w-5 print:h-4 print:w-4" /> Address
-              </CardTitle>
-            </CardHeader>
-            <CardContent className="print:pt-2 print:px-0">
-              <PrintDetailItem label="Residential Address" value={suspect.residentialAddress} isLongText />
-            </CardContent>
-          </Card>
-        </div>  
-
-          <Separator className="my-3 print:my-2 mb-8" />
-
-        {displayOffences && displayOffences.length > 0 && (
-            <Card className="print:shadow-none print:border-gray-300 print:rounded-none">
-                <CardHeader className="print:pb-2 print:px-0">
-                    <CardTitle className="text-base print:text-sm font-semibold text-primary print:text-black flex items-center">
-                        <Gavel className="mr-2 h-5 w-5 print:h-4 print:w-4 text-red-700 print:text-black" /> Nature of Offence(s)
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="print:pt-2 print:px-0">
-                    <PrintDetailItem label="" value={displayOffences} isList />
-                </CardContent>
-            </Card>
-        )}
-
-        <Separator className="my-3 print:my-2 mb-4" />
-
-        {suspect.linkedCaseRoNumbers && suspect.linkedCaseRoNumbers.length > 0 && (
-            <Card className="print:shadow-none print:border-gray-300 print:rounded-none mb-8">
-                <CardHeader className="print:pb-2 print:px-0">
-                    <CardTitle className="text-base print:text-sm font-semibold text-primary print:text-black flex items-center">
-                        <Link2 className="mr-2 h-5 w-5 print:h-4 print:w-4" /> Linked Case R.O. Numbers
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="print:pt-2 print:px-0">
-                    <PrintDetailItem label="" value={suspect.linkedCaseRoNumbers} isList />
-                </CardContent>
-            </Card>
-        )}
-
-        <Separator className="my-3 print:my-2" />
-
-       
-
-        <Card className="print:shadow-none print:border-gray-300 print:rounded-none">
-          <CardHeader className="print:pb-2 print:px-0">
-            <CardTitle className="text-base print:text-sm font-semibold text-primary print:text-black flex items-center">
-              <ShieldAlert className="mr-2 h-5 w-5 print:h-4 print:w-4" /> SIGNATURES
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="grid grid-cols-1 sm:grid-cols-2 print:grid-cols-2 gap-x-4 print:gap-x-2 print:pt-2 print:px-0">
-            <div>
-              <h6 className='mb-8'>Signature of Unit Commander</h6>
+        <div className="mt-12 print:mt-8 pt-4 grid grid-cols-3 gap-x-6 text-center">
+            <div className="flex flex-col justify-end">
+                <div className="border-t border-gray-500 print:border-black pt-1">
+                    <p className="text-sm print:text-xs font-medium">Case Officer</p>
+                    <p className="text-xs text-gray-500 print:text-gray-600">(Signature)</p>
+                </div>
             </div>
-            <div>
-              <h6 className='mb-8'>Signature of Unit Station Officer</h6>
+            <div className="flex flex-col justify-end">
+                <div className="border-t border-gray-500 print:border-black pt-1">
+                    <p className="text-sm print:text-xs font-medium">Station Officer</p>
+                    <p className="text-xs text-gray-500 print:text-gray-600">(Signature)</p>
+                </div>
             </div>
-            <div>
-              <h6 className='mb-8'>Signature of Unit Investigator</h6>
+            <div className="flex flex-col justify-end">
+                <div className="border-t border-gray-500 print:border-black pt-1">
+                    <p className="text-sm print:text-xs font-medium">Suspect/Accused</p>
+                    <p className="text-xs text-gray-500 print:text-gray-600">(Signature)</p>
+                </div>
             </div>
-            <div>
-              <h6 className='mb-8'>Signature of Unit Suspect/Accused</h6>
-            </div>
-            <PrintDetailItem label="Updated By (Officer)" value={suspect.updatedBy} />
-          </CardContent>
-        </Card>
-      </div>
-
-
-      <footer className="mt-8 print:mt-6 pt-4 print:pt-2 border-t text-center">
+        </div>
+      </main>
+      
+      <footer className="mt-6 print:mt-4 pt-3 print:pt-2 border-t text-center">
         <p className="text-xs text-gray-500 print:text-gray-700">
           Printed on: {format(new Date(), "PPP p")}
         </p>
@@ -260,12 +183,6 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
           CONFIDENTIAL - Ghana Police Service - For Official Use Only
         </p>
       </footer>
-    
-    </>
+    </div>
   );
 };
-
-// SuspectPrintLayout.displayName = "SuspectPrintLayout"; // Not needed if not using forwardRef
-    
-
-    

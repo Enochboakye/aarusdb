@@ -1,7 +1,8 @@
 "use client";
 import React from 'react'; // Import React for Suspense
 import { PageContainer } from '@/components/page-container';
-import { SuspectForm, type SuspectFormValues } from '@/components/suspect-form';
+import { SuspectForm, } from '@/components/suspect-form';
+import {SuspectFormValues } from '@/types/suspect'
 import { UserPlus, Loader2 } from 'lucide-react'; // Import Loader2
 import { createSuspectAction } from '../actions';
 
@@ -18,7 +19,7 @@ export default function NewSuspectPage() {
         <p className="ml-4 text-lg">Loading page...</p>
       </div>
     }>
-      <PageContainer title="Add New Suspect Record" className="max-w-5xl mx-auto">
+      <PageContainer className="max-w-5xl mx-auto">
         <div className="bg-card p-6 md:p-8 rounded-lg shadow-lg">
           <div className="flex items-center mb-6">
             <UserPlus className="h-8 w-8 mr-3 text-primary" />
