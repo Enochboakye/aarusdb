@@ -27,7 +27,7 @@ const ButtonBar = () => {
   <div className="flex h-20 gap-x-10 rounded-xl bg-white px-4 py-1 items-center">
     <button
       className="transition-all duration-300 hover:scale-125
-       flex h-20 !w-30 items-center justify-center rounded-md
+       flex h-20 !w-40 items-center justify-center rounded-md
         border border-[#3490f340] bg-[#e3ecf4] text-[#3490f3] 
         shadow-[0px_1px_4px] hover:shadow-[0px_4px_10px]"
         onClick={handleModal}
@@ -60,7 +60,7 @@ const ButtonBar = () => {
 
     <button
       className="transition-all duration-300
-       hover:scale-125 flex h-20 !w-30 items-center
+       hover:scale-125 flex h-20 !w-40 items-center
         justify-center rounded-md border border-[#3490f340]
          bg-[#e3ecf4] text-[#3490f3] shadow-[0px_1px_4px] 
          hover:shadow-[0px_4px_10px]"
@@ -73,7 +73,7 @@ const ButtonBar = () => {
 
     <button
       className="transition-all duration-300 
-      hover:scale-125 flex h-20 !w-30 items-center
+      hover:scale-125 flex h-20 !w-40 items-center
        justify-center rounded-md border border-[#3490f340]
         bg-[#e3ecf4] text-[#3490f3] shadow-[0px_1px_4px]
          hover:shadow-[0px_4px_10px]"
