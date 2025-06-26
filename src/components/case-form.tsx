@@ -69,7 +69,7 @@ export interface CaseFormValues {
   briefFacts: string;
   status: 'Open' | 'Pending' | 'Closed' | 'Under Investigation' | 'Cold Case';
   priority: 'Low' | 'Medium' | 'High';
-  dateReported: string; 
+  dateReported: string | undefined; 
   dateOccurred?: string | undefined; 
   locationOfOffence?: string | undefined;
   complainant: string;
@@ -165,7 +165,7 @@ export function CaseForm({ initialData, onSubmitForm, isEditMode = false }: Case
     briefFacts: "",
     status: "Open",
     priority: "Medium",
-    dateReported: format(new Date(), "yyyy-MM-dd"),
+    dateReported: "",
     dateOccurred: "",
     locationOfOffence: "",
     complainant: "",
@@ -403,30 +403,34 @@ export function CaseForm({ initialData, onSubmitForm, isEditMode = false }: Case
                 </FormItem>
                 <FormItem className="flex flex-col">
                   <Label htmlFor="dateReported">Date Reported *</Label>
-                  <Popover>
-                     <PopoverTrigger asChild>
-                      <Button type="button" variant="outline" id="dateOfBirth" className={cn("w-full pl-3 text-left font-normal", !values.dateReported && "text-muted-foreground")} disabled={isSubmitting}>
-                         {values.dateReported && isValid(parseISO(values.dateReported)) ? format(parseISO(values.dateReported), "PPP") : <span>Pick a date</span>}
-                          <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
-                         </Button>
-                        </PopoverTrigger>
-                       <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={values.dateReported ? parseISO(values.dateReported) : undefined} defaultMonth={values.dateReported ? parseISO(values.dateReported) : twentyFiveYearsAgo} onSelect={(date) => setFieldValue('dateOfBirth', date ? format(date, "yyyy-MM-dd") : "")} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus captionLayout="dropdown" fromYear={1900} toYear={new Date().getFullYear()} />
-                     </PopoverContent>
-                    </Popover>
+                   <Popover>
+                    <PopoverTrigger asChild>
+                      <Button type="button" variant="outline" id="dateReported" className={cn("w-full pl-3 text-left font-normal", !values.dateReported && "text-muted-foreground")} disabled={isSubmitting}>
+                        {values.dateReported && isValid(parseISO(values.dateReported)) ? format(parseISO(values.dateReported), "PPP") : <span>Pick a date</span>}
+                        <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0" align="start">
+                      <Calendar mode="single" selected={values.dateReported ? parseISO(values.dateReported) : undefined} defaultMonth={values.dateReported ? parseISO(values.dateReported) : twentyFiveYearsAgo}
+                       onSelect={(date) => setFieldValue('dateReported', date ? format(date, "yyyy-MM-dd") : "")} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus captionLayout="dropdown" 
+                       fromYear={1900} toYear={new Date().getFullYear()} />
+                    </PopoverContent>
+                  </Popover>
                   <FormikErrorMessage name="dateReported"/>
                 </FormItem>
                  <FormItem className="flex flex-col">
                   <Label htmlFor="dateOccurred">Date Occurred (Optional)</Label>
                    <Popover>
                     <PopoverTrigger asChild>
-                      <Button type="button" variant="outline" id="dateOfBirth" className={cn("w-full pl-3 text-left font-normal", !values.dateOccurred && "text-muted-foreground")} disabled={isSubmitting}>
+                      <Button type="button" variant="outline" id="dateOfBirth" className={cn("w-full pl-3 text-left font-normal", !values.dateOccurred && "text-muted-foreground")}
+                       disabled={isSubmitting}>
                         {values.dateOccurred && isValid(parseISO(values.dateOccurred)) ? format(parseISO(values.dateOccurred), "PPP") : <span>Pick a date</span>}
                         <CalendarIcon className="ml-auto h-4 w-4 opacity-50" />
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0" align="start">
-                      <Calendar mode="single" selected={values.dateOccurred ? parseISO(values.dateOccurred) : undefined} defaultMonth={values.dateOccurred ? parseISO(values.dateOccurred) : twentyFiveYearsAgo} onSelect={(date) => setFieldValue('dateOccurred', date ? format(date, "yyyy-MM-dd") : "")} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus captionLayout="dropdown" fromYear={1900} toYear={new Date().getFullYear()} />
+                      <Calendar mode="single" selected={values.dateOccurred ? parseISO(values.dateOccurred) : undefined}
+                       defaultMonth={values.dateOccurred ? parseISO(values.dateOccurred) : twentyFiveYearsAgo} onSelect={(date) => setFieldValue('dateOccurred', date ? format(date, "yyyy-MM-dd") : "")} disabled={(date) => date > new Date() || date < new Date("1900-01-01")} initialFocus captionLayout="dropdown" fromYear={1900} toYear={new Date().getFullYear()} />
                     </PopoverContent>
                   </Popover>
                   <FormikErrorMessage name="dateOccurred"/>

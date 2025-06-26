@@ -26,21 +26,21 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import React from "react";
-import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
-
-export const caseActionColumn: GridColDef[] = [
+import { type MRT_ColumnDef } from 'material-react-table';
+export const caseActionColumn: MRT_ColumnDef<Case, unknown>[] = [
   {
-    field: "action",
-    headerName: "Action",
-    width: 200,
-    type: 'actions',
-    renderCell: (params: GridRenderCellParams<Case>) => (
+    id: 'actions',
+    header: 'Actions', // ✅ Add this to fix the error
+    size: 200,
+    enableSorting: false,
+    enableColumnFilter: false,
+    Cell: ({ row }) => (
       <div className="cellAction gap-4">
-        <CaseCellActions caseData={params.row} />
+        <CaseCellActions caseData={row.original} />
       </div>
     ),
   },
-]
+];
 
 
 const CaseCellActions = ({ refreshData, caseData }: { 

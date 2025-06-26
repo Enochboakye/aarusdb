@@ -1,62 +1,28 @@
+
 "use client";
-import React, { useState, useEffect, useCallback, Suspense } from 'react'; // Added React and Suspense
+
+import React, { useState, useEffect, useCallback, Suspense } from 'react';
 import { PlusCircle, Loader2, Briefcase } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import { PageContainer } from '@/components/page-container';
-import {useRouter} from 'next/navigation'
-import type { Case } from '@/types/case';
 import { Button } from '@/components/ui/button';
 import { toast } from '@/hooks/use-toast';
-import { fetchCasesAction } from './actions'; 
-import ClientDataGrid from '@/components/client-data-grid';
-import {GridFilterModel, GridColDef} from '@mui/x-data-grid';
-import {caseActionColumn} from './columns'
+import { fetchCasesAction } from './actions';
+import type { Case } from '@/types/case';
+import { caseActionColumn } from './columns';
 
+import { MaterialReactTable, type MRT_ColumnDef } from 'material-react-table';
+import { Box, TextField } from '@mui/material';
 
 function CasesPageContent() {
-  
-
   const [cases, setCases] = useState<Case[]>([]);
-  const [loading, setLoading] = useState(true); 
-  const [filterModel, setFilterModel] = useState<GridFilterModel>();
-  const [searchValue, setSearchValue] = useState('');
-
-  const muiColumns: GridColDef[] = [
-    {
-      field: 'id',
-      headerName: 'ID',
-      width: 50,
-      hideable: true, // Hide the ID column but keep it for internal use
-    },
-    {
-      field: 'roNumber',
-      headerName: 'R.O Number',
-      width: 100
-    },
-    {
-      field: 'priority',
-      headerName: 'Priority',
-      width:100
-    },
-    {
-      field: 'complainant',
-      headerName: 'Complainant',
-      width: 200,
-     
-    },
-    {
-      field: 'dateOccurred',
-      headerName: 'D.O.O',
-      width: 100
-    }
-  ];
+  const [loading, setLoading] = useState(true);
+  const [globalFilter, setGlobalFilter] = useState('');
 
   const fetchCases = useCallback(async () => {
     setLoading(true);
-
     try {
-      const fetchedCases = await fetchCasesAction(); 
-      
-      
+      const fetchedCases = await fetchCasesAction();
       setCases(fetchedCases);
     } catch (error) {
       console.error("Error fetching cases:", error);
@@ -65,27 +31,38 @@ function CasesPageContent() {
         description: "Failed to load case records. Please try again.",
         variant: "destructive",
       });
-      setCases([]); 
+      setCases([]);
     } finally {
       setLoading(false);
     }
-  }, []); 
+  }, []);
 
   useEffect(() => {
     fetchCases();
-  }, [fetchCases]); 
+  }, [fetchCases]);
 
-  useEffect(() => {
-    const timeoutId = setTimeout(() => {
-      setFilterModel({
-        items: [
-          {id:1, field: "roNumber", operator: "contains", value: searchValue},
-          
-        ],
-      });
-    }, 300);
-    return () => clearTimeout(timeoutId);
-  }, [searchValue]);
+  const columns: MRT_ColumnDef<Case>[] = [
+    {
+      accessorKey: 'roNumber',
+      header: 'R.O Number',
+      size: 100,
+    },
+    {
+      accessorKey: 'priority',
+      header: 'Priority',
+      size: 100,
+    },
+    {
+      accessorKey: 'complainant',
+      header: 'Complainant',
+      size: 200,
+    },
+    {
+      accessorKey: 'dateOccurred',
+      header: 'D.O.O',
+      size: 100,
+    },
+  ];
 
   return (
     <>
@@ -96,29 +73,40 @@ function CasesPageContent() {
         </div>
       ) : (
         <>
-          <div>
-            <input
-              type="text"
-              placeholder="Search"
-              value={searchValue}
-              onChange={(e) => setSearchValue(e.target.value)}
-              className="border p-2 mb-4 w-full rounded-md shadow-md"
-            />
-          </div>
-          <ClientDataGrid 
-            columns={[...muiColumns,...caseActionColumn]} 
-            rows={cases}
-            loading={loading}
-            filterModel={filterModel}
-            onFilterModelChange={setFilterModel}
-            disableMultipleRowSelection={false}
-            checkboxSelection
+          <TextField
+            label="Search"
+            variant="outlined"
+            size="small"
+            fullWidth
+            value={globalFilter}
+            onChange={(e) => setGlobalFilter(e.target.value)}
+            sx={{ mb: 2 }}
           />
+
+          <Box className="datagrid">
+            <MaterialReactTable
+              columns={[...columns, ...caseActionColumn]}
+              data={cases}
+              state={{ isLoading: loading, globalFilter }}
+              onGlobalFilterChange={setGlobalFilter}
+              enableRowSelection
+              enableColumnActions
+              enableColumnFilters
+              enableSorting
+              enablePagination
+              paginationDisplayMode="pages"
+              muiTablePaperProps={{
+                elevation: 0,
+                sx: { borderRadius: "12px", overflow: "hidden" },
+              }}
+            />
+          </Box>
         </>
       )}
     </>
   );
 }
+
 
 export default function CasesPage() {
   const router = useRouter();

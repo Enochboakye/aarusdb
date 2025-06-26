@@ -165,7 +165,7 @@ export default function ViewCasePage() {
 
   if (loading) {
     return (
-      <PageContainer title="Loading Case Details...">
+      <PageContainer>
         <div className="flex justify-center items-center h-64">
           <Loader2 className="h-12 w-12 animate-spin text-primary" />
         </div>
@@ -174,12 +174,12 @@ export default function ViewCasePage() {
   }
 
   if (!caseData) {
-    return <PageContainer title="Case Not Found"><p>The requested case could not be found.</p></PageContainer>;
+    return <PageContainer><p>The requested case could not be found.</p></PageContainer>;
   }
 
   return (
-    <PageContainer title={`Case Details: ${caseData.roNumber}`} className="max-w-6xl mx-auto">
-       <div className="flex space-x-2 mb-6 justify-end -mt-16 pt-1 pr-1 sticky top-16 bg-background py-3 z-30">
+    <PageContainer  className="max-w-6xl mx-auto    ">
+       <div className="flex space-x-2 mb-6 justify-end mt-16 pt-1 pr-1 sticky top-16 bg-background py-3 z-30">
           <Button variant="outline" onClick={() => router.push('/cases')}>
             <ArrowLeft className="mr-2 h-4 w-4" /> Back to Cases
           </Button>
