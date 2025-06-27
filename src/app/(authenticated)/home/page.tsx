@@ -186,7 +186,7 @@ export default function DataAnalysisDashboardPage() {
             value={stats.totalCases} 
             icon={Briefcase} 
             description="All registered cases" 
-            className="bg-pink-600/30 backdrop-blur-md backdrop-opacity-60 " 
+            className="bg-pink-600 text-white" 
             textColorClassName="text-primary-foreground" 
             mutedColorClassName="text-primary-foreground/80" 
             iconColorClassName="text-primary-foreground" 
@@ -216,7 +216,7 @@ export default function DataAnalysisDashboardPage() {
             value={stats.suspectsInPoliceCustody} 
             icon={UserCheck} 
             description="Active investigation" 
-            className="bg-yellow-800" 
+            className="bg-yellow-600" 
             textColorClassName="text-primary-foreground" 
             mutedColorClassName="text-primary-foreground/80" 
             iconColorClassName="text-primary-foreground"

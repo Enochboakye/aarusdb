@@ -13,7 +13,7 @@ export default function Home() {
     // Simulate a loading state
     const timer = setTimeout(() => {
       // Redirect to dashboard after 3 seconds
-      redirect('/dashboard');
+      redirect('/home');
     }, 3000);
 
     return () => clearTimeout(timer);

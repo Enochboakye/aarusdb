@@ -72,7 +72,7 @@ export default function VerifyOfficer({onVerified}:{onVerified: () => void}) {
               required
               value={serviceNumber}
               onChange={(e) => setServiceNumber(e.target.value)}
-              className="mt-1 relative block w-full px-3 py-2 border border-gray-300 rounded-md"
+              className="mt-1 relative block w-full px-3 py-2 border border-gray-300 rounded-md text-black"
               placeholder="Enter your service number"
             />
           </div>

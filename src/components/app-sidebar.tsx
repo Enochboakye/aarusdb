@@ -16,13 +16,13 @@ import {
 // Menu items.
 const items = [
   {
-    title: "Dashboard",
+    title: "Admin Dashboard",
     url: "/admin",
     icon: LayoutDashboard,
   },
   {
     title: "Home",
-    url: "/dashboard",
+    url: "/home",
     icon: Home,
   },
   {
