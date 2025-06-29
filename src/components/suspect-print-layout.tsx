@@ -78,10 +78,15 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
       <header className="text-center mb-4 print:mb-2">
        <h1 className="text-3xl text-extrabold">ANTI ARMED ROBBERY UNIT</h1>
       </header>
+
+      <Separator className="my-3 print:my-2 bg-gray-400" />
+      <div className="text-center mb-4 print:mb-2">
+        <h1 className="text-2xl print:text-2xl font-bold text-primary float-left">R.O NUMBER: {suspect.linkedCaseRoNumbers}</h1>
+      </div>
       
       <Separator className="my-3 print:my-2 bg-gray-400" />
         <div className="text-center mb-4 print:mb-2">
-           <h1 className="text-2xl print:text-2xl font-bold text-primary">{suspect.fullName}</h1>
+           <h1 className="text-2xl print:text-2xl font-bold text-primary">NAME: {suspect.fullName}</h1>
         {suspect.nickname && <p className="text-lg print:text-base text-gray-600 print:text-gray-700">&quot;{suspect.nickname}&quot;</p>}
         </div>
       <main>

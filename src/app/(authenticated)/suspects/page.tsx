@@ -11,7 +11,7 @@ import { Button } from "@/components/ui/button";
 import { Suspect } from "@/types/suspect";
 import { MaterialReactTable, type MRT_ColumnDef } from "material-react-table";
 import { Box, TextField } from "@mui/material";
-
+import actionColumn from "./columns";
 const SuspectsPageContent = () => {
   const [suspects, setSuspects] = useState<Suspect[]>([]);
   const [loading, setLoading] = useState(true);
@@ -84,7 +84,7 @@ const SuspectsPageContent = () => {
 
           <Box className="datagrid">
             <MaterialReactTable
-              columns={columns}
+              columns={[...columns, ...actionColumn]}
               data={suspects}
               state={{ isLoading: loading, globalFilter }}
               onGlobalFilterChange={setGlobalFilter}

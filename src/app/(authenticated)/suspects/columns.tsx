@@ -12,24 +12,24 @@ import {
 import Link from "next/link"
 
 import React from "react"
-import type { GridColDef, GridRenderCellParams } from '@mui/x-data-grid';
+import { type MRT_ColumnDef } from 'material-react-table';
 
-const actionColumn: GridColDef[] = [
+const actionColumn: MRT_ColumnDef<Suspect, unknown>[] = [
   {
-    field: "action",
-    headerName: "Action",
-    width: 200,
-    type: 'actions',
-    renderCell: (params: GridRenderCellParams<Suspect>) => (
+    id: 'actions',
+    header: 'Actions', // ✅ Add this to fix the error
+    size: 200,
+    enableSorting: false,
+    enableColumnFilter: false,
+    Cell: ({ row }) => (
       <div className="cellAction gap-4">
-        <CellActions suspect={params.row} />
+        <CellActions suspect={row.original} />
       </div>
     ),
   },
 ];
 
 const CellActions = ({ suspect }: { suspect: Suspect }) => {
-
   
   return (
     <DropdownMenu>
