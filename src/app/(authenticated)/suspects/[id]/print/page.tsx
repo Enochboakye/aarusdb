@@ -153,7 +153,7 @@ export default function SuspectPrintPage() {
         <p className="text-center text-muted-foreground mb-4 no-print">
           Preparing print preview... The print dialog should appear automatically. If it doesn&#39;t, please use your browser&#39;s print function (Ctrl/Cmd + P).
         </p>
-        <div ref={contentRef}>
+        <div ref={contentRef} className='p-4'>
           <SuspectPrintLayout suspect={suspect} />
         </div>
       </div>
