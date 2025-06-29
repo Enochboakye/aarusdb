@@ -39,7 +39,7 @@ export default function VerifyOfficer({onVerified}:{onVerified: () => void}) {
     
       const matched = officers.find(officer => officer.serviceNumber === serviceNumber.trim() && officer.fullName === fullName.trim() && officer.rank === rank)
       if(matched){
-        alert("verified")
+        alert(` Oficcer ${matched.fullName}, You are verified`)
         sessionStorage.setItem('verified', 'true')
         onVerified()
   
