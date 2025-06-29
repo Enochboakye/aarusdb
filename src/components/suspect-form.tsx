@@ -17,7 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CalendarIcon, Save, Loader2, UserCog, UserPlus, Edit3, XCircle, Phone as PhoneIcon,  PlusCircle, Trash2, Gavel, Camera as CameraIconLucide,  AlertTriangle } from "lucide-react";
+import { CalendarIcon, Save, Loader2, UserCog, UserPlus, Users, Edit3, XCircle, Phone as PhoneIcon,  PlusCircle, Trash2, Gavel, Camera as CameraIconLucide,  AlertTriangle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, parseISO, isValid } from "date-fns";
 import { GENDERS, EDUCATION_LEVELS, MARITAL_STATUSES, NATIONALITIES, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, PHYSICAL_MARK_OPTIONS,
@@ -96,6 +96,9 @@ export function SuspectForm({ initialData, onSubmitForm, isEditMode = false }: S
     custodyStatus: initialData.custodyStatus || "Unknown",
     custodyLocation: initialData.custodyLocation || "",
     height: initialData.height || "",
+    father: initialData.father || { name: "", address: "" },
+    mother: initialData.mother || { name: "", address: "" },
+    nextOfKin: initialData.nextOfKin || { name: "", address: "" },
   } : {
     fullName: "",
     nickname: "",
@@ -126,6 +129,9 @@ export function SuspectForm({ initialData, onSubmitForm, isEditMode = false }: S
     hairColor: "",
     eyeColor: "",
     custodyLocation: "",
+    father: { name: "", address: "" },
+    mother: { name: "", address: "" },
+    nextOfKin: { name: "", address: "" },
   };
 
   const validateForm = (values: SuspectFormValues): FormikErrors<SuspectFormValues> => {
@@ -518,6 +524,52 @@ export function SuspectForm({ initialData, onSubmitForm, isEditMode = false }: S
                     </div>
                 </div>
             </div>
+
+             <div className="space-y-6 border-b pb-8">
+              <div className="flex items-center space-x-3">
+                <Users className="h-6 w-6 text-primary" />
+                <h3 className="text-xl font-semibold text-foreground">Family & Kin Information</h3>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-8">
+                {/* Father */}
+                <FormItem>
+                  <Label htmlFor="father.name">Fathers&apos; Name</Label>
+                  <Field as={Input} name="father.name" id="father.name" placeholder="Enter father's full name" disabled={formikSubmitting} />
+                  <FormikErrorMessage name="father.name" />
+                </FormItem>
+                <FormItem>
+                  <Label htmlFor="father.address">Father&apos; Address</Label>
+                  <Field as={Input} name="father.address" id="father.address" placeholder="Enter father's address" disabled={formikSubmitting} />
+                  <FormikErrorMessage name="father.address" />
+                </FormItem>
+
+                {/* Mother */}
+                <FormItem>
+                  <Label htmlFor="mother.name">Mother&apos; Name</Label>
+                  <Field as={Input} name="mother.name" id="mother.name" placeholder="Enter mother's full name" disabled={formikSubmitting} />
+                  <FormikErrorMessage name="mother.name" />
+                </FormItem>
+                <FormItem>
+                  <Label htmlFor="mother.address">Mother&apos; Address</Label>
+                  <Field as={Input} name="mother.address" id="mother.address" placeholder="Enter mother's address" disabled={formikSubmitting} />
+                  <FormikErrorMessage name="mother.address" />
+                </FormItem>
+                
+                {/* Next of Kin */}
+                <FormItem>
+                  <Label htmlFor="nextOfKin.name">Next of Kin&apos; Name</Label>
+                  <Field as={Input} name="nextOfKin.name" id="nextOfKin.name" placeholder="Enter next of kin's full name" disabled={formikSubmitting} />
+                  <FormikErrorMessage name="nextOfKin.name" />
+                </FormItem>
+                <FormItem>
+                  <Label htmlFor="nextOfKin.address">Next of Kin&apos; Address</Label>
+                  <Field as={Input} name="nextOfKin.address" id="nextOfKin.address" placeholder="Enter next of kin's address" disabled={formikSubmitting} />
+                  <FormikErrorMessage name="nextOfKin.address" />
+                </FormItem>
+              </div>
+            </div>
+
+
             <div className="space-y-6 border-b pb-8">
               <h3 className="text-xl font-semibold text-foreground">Custody Information</h3>
                   <p className="text-sm font-semibold text-muted-foreground">Select Custody Status of the Suspect. e.g: on bail, in police custody or prisons</p>

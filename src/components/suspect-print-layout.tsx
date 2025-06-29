@@ -139,7 +139,6 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
                     <p className="text-sm text-gray-500">No offences listed.</p>
                     )}
                     <Separator className="my-2.5 print:my-1.5" />
-                    <PrintDetailItem label="Assigned Investigator" value={suspect.assignedInvestigator} />
                 </Section>
 
                 <Section title="Contact Information">
@@ -154,6 +153,30 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
                     <PrintDetailItem label="Education Level" value={suspect.educationLevel} />
                     <Separator className="my-2.5 print:my-1.5" />
                     <PrintDetailItem label="Languages Spoken" value={suspect.languagesSpoken} />
+                </Section>
+
+                <Section title="Family & Kin Information">
+                    {suspect.father?.name && (
+                        <div className="mb-2">
+                            <p className="font-semibold text-gray-600 print:font-medium text-xs">Father</p>
+                            <PrintDetailItem label="Name" value={suspect.father.name} />
+                            <PrintDetailItem label="Address" value={suspect.father.address} />
+                        </div>
+                    )}
+                    {suspect.mother?.name && (
+                        <div className="mb-2">
+                            <p className="font-semibold text-gray-600 print:font-medium text-xs">Mother</p>
+                            <PrintDetailItem label="Name" value={suspect.mother.name} />
+                            <PrintDetailItem label="Address" value={suspect.mother.address} />
+                        </div>
+                    )}
+                    {suspect.nextOfKin?.name && (
+                        <div className="mb-2">
+                            <p className="font-semibold text-gray-600 print:font-medium text-xs">Next of Kin</p>
+                            <PrintDetailItem label="Name" value={suspect.nextOfKin.name} />
+                            <PrintDetailItem label="Address" value={suspect.nextOfKin.address} />
+                        </div>
+                    )}
                 </Section>
             </div>
         </div>

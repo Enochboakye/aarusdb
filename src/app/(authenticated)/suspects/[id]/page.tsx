@@ -206,7 +206,7 @@ export default function ViewSuspectPage() {
             </Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link href={`/suspects/${suspect.id}/print`} target="_blank" rel="noopener noreferrer">
+            <Link href={`/suspects/${suspect.id}/print`}>
               <Printer className="mr-2 h-4 w-4" /> Print Record
             </Link>
           </Button>
@@ -278,6 +278,37 @@ export default function ViewSuspectPage() {
               <DetailItem icon={MapPin} label="Residential Address" value={suspect.residentialAddress} isLongText />
             </CardContent>
           </Card>
+
+
+          <Card>
+            <CardHeader><CardTitle className="text-lg">Family & Kin Information</CardTitle></CardHeader>
+            <CardContent>
+              {suspect.father?.name && (
+                <>
+                  <DetailItem icon={UserIcon} label="Father's Name" value={suspect.father.name} />
+                  {suspect.father.address && <DetailItem icon={MapPin} label="Father's Address" value={suspect.father.address} isLongText />}
+                  <Separator className="my-3" />
+                </>
+              )}
+              {suspect.mother?.name && (
+                <>
+                  <DetailItem icon={UserIcon} label="Mother's Name" value={suspect.mother.name} />
+                  {suspect.mother.address && <DetailItem icon={MapPin} label="Mother's Address" value={suspect.mother.address} isLongText />}
+                  <Separator className="my-3" />
+                </>
+              )}
+              {suspect.nextOfKin?.name && (
+                <>
+                  <DetailItem icon={UserIcon} label="Next of Kin" value={suspect.nextOfKin.name} />
+                  {suspect.nextOfKin.address && <DetailItem icon={MapPin} label="Next of Kin's Address" value={suspect.nextOfKin.address} isLongText />}
+                </>
+              )}
+              {(!suspect.father?.name && !suspect.mother?.name && !suspect.nextOfKin?.name) && (
+                  <p className="text-muted-foreground">No family or kin information provided.</p>
+              )}
+            </CardContent>
+          </Card>
+
 
           {suspect.offences && suspect.offences.length > 0 && (
              <Card>

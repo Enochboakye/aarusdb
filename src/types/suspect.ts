@@ -48,6 +48,12 @@ export interface Suspect {
 
   linkedCaseRoNumbers?: string[]; // Stores R.O. numbers of cases this suspect is linked to
 
+
+  // Family & Kin
+  father?: { name: string; address?: string };
+  mother?: { name: string; address?: string };
+  nextOfKin?: { name: string; address?: string };
+
   createdAt: string; // ISO string
   updatedAt: string; // ISO string
   
@@ -93,5 +99,9 @@ export type SuspectFormValues = {
   eyeColor?: string;
   custodyStatus?: CustodyStatus;
   custodyLocation?: string;
+   // Family & Kin
+  father?: { name: string; address?: string };
+  mother?: { name: string; address?: string };
+  nextOfKin?: { name: string; address?: string };
 }
 
