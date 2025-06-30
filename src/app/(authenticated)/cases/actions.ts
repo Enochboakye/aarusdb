@@ -16,7 +16,7 @@ async function getCurrentUser() {
   const user = await currentUser();
   return {
     userId: user?.id || 'system',
-    userName: user?.firstName || 'System'
+    userName: user?.firstName ? `${user.firstName} ${user.lastName || ''}`.trim() : 'System User'
   };
 }
 
@@ -247,7 +247,8 @@ export async function createCaseAction(
     createdAt: Timestamp.fromDate(new Date()).toDate().toISOString(),
     updatedAt: Timestamp.fromDate(new Date()).toDate().toISOString(),
     createdBy: userName, 
-    createdById: userId, 
+    createdById: userId,
+    dateReported:data.dateReported ?? '', 
   };
   
   const { ...saveData } = newCaseData as Case; 
