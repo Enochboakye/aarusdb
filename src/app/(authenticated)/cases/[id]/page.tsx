@@ -10,7 +10,9 @@ import { notFound, useParams, useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { Button } from '@/components/ui/button';
 import Link from 'next/link';
-import { Edit, ArrowLeft, CalendarDays, MapPin, Phone,  FileText,  User as UserIcon, Gavel, Users, ShieldCheck, ShieldAlert, ShieldQuestion, Paperclip, UserSquare, Users2, ExternalLink } from 'lucide-react';
+import { Edit, ArrowLeft, CalendarDays, MapPin, Phone,  FileText,
+    User as UserIcon, Gavel, Users, ShieldCheck, ShieldAlert,
+   ShieldQuestion, Paperclip, UserSquare, Users2, ExternalLink} from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';

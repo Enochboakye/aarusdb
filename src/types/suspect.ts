@@ -14,6 +14,7 @@ export type CustodyStatus =
   | 'Wanted' 
   | 'Deceased'
   | 'Other'
+  |'Convicted(Prison)'
   | 'Unknown';
 
 export interface Suspect {
