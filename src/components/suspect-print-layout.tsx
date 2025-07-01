@@ -105,28 +105,28 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
             {/* --- Left Column --- */}
             <div className="space-y-4 print:space-y-3">
                 <Section title="Personal Details">
-                    <PrintDetailItem label="Date of Birth" value={suspect.dateOfBirth} />
-                    <PrintDetailItem label="Gender" value={suspect.gender} />
-                    <PrintDetailItem label="Nationality" value={suspect.nationality} />
-                    <PrintDetailItem label="Place of Birth" value={suspect.placeOfBirth} />
-                    <PrintDetailItem label="Hometown" value={suspect.hometown} />
-                    <PrintDetailItem label="Marital Status" value={suspect.maritalStatus} />
+                    <PrintDetailItem label=" Date of Birth" value={suspect.dateOfBirth} />
+                    <PrintDetailItem label=" Gender" value={suspect.gender} />
+                    <PrintDetailItem label=" Nationality" value={suspect.nationality} />
+                    <PrintDetailItem label=" Place of Birth" value={suspect.placeOfBirth} />
+                    <PrintDetailItem label=" Hometown" value={suspect.hometown} />
+                    <PrintDetailItem label=" Marital Status" value={suspect.maritalStatus} />
                 </Section>
 
                 <Section title="Physical Description">
-                    <PrintDetailItem icon={Ruler} label="Height" value={suspect.height} />
-                    <PrintDetailItem icon={Palette} label="Skin Tone" value={suspect.skinTone} />
-                    <PrintDetailItem icon={Sparkles} label="Hair Style" value={suspect.hairStyle} />
-                    <PrintDetailItem icon={Palette} label="Hair Color" value={suspect.hairColor} />
-                    <PrintDetailItem icon={EyeIcon} label="Eye Color" value={suspect.eyeColor} />
+                    <PrintDetailItem icon={Ruler} label=" Height" value={suspect.height} />
+                    <PrintDetailItem icon={Palette} label=" Skin Tone" value={suspect.skinTone} />
+                    <PrintDetailItem icon={Sparkles} label=" Hair Style" value={suspect.hairStyle} />
+                    <PrintDetailItem icon={Palette} label=" Hair Color" value={suspect.hairColor} />
+                    <PrintDetailItem icon={EyeIcon} label=" Eye Color" value={suspect.eyeColor} />
                     <Separator className="my-1.5 print:my-1" />
                     <p className="font-semibold text-gray-600 print:font-medium text-xs">Physical Marks</p>
                     <PrintDetailItem value={suspect.physicalMarks} isList />
                 </Section>
 
                  <Section title="Lifestyle">
-                    <PrintDetailItem label="Smokes" value={suspect.smokes} isBoolean />
-                    <PrintDetailItem label="Drinks Alcohol" value={suspect.drinksAlcohol} isBoolean />
+                    <PrintDetailItem label=" Smokes" value={suspect.smokes} isBoolean />
+                    <PrintDetailItem label=" Drinks Alcohol" value={suspect.drinksAlcohol} isBoolean />
                 </Section>
             </div>
 
@@ -143,17 +143,17 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
                 </Section>
 
                 <Section title="Contact Information">
-                    <PrintDetailItem icon={Phone} label="Phone Number(s)" value={suspect.phoneNumbers} isList />
-                    <PrintDetailItem icon={Mail} label="Email Address" value={suspect.emailAddress} />
-                    <PrintDetailItem icon={MapPin} label="Residential Address" value={suspect.residentialAddress} />
+                    <PrintDetailItem icon={Phone} label=" Phone Number(s)" value={suspect.phoneNumbers} isList />
+                    <PrintDetailItem icon={Mail} label=" Email Address" value={suspect.emailAddress} />
+                    <PrintDetailItem icon={MapPin} label=" Residential Address" value={suspect.residentialAddress} />
                 </Section>
 
                 <Section title="Background">
                     <h4 className="text-md print:text-sm font-semibold text-gray-800 print:text-black mb-1 flex items-center"><Briefcase className="h-4 w-4 mr-2"/>Occupation & Education</h4>
-                    <PrintDetailItem label="Occupation" value={suspect.occupation} />
-                    <PrintDetailItem label="Education Level" value={suspect.educationLevel} />
+                    <PrintDetailItem label=" Occupation" value={suspect.occupation} />
+                    <PrintDetailItem label=" Education Level" value={suspect.educationLevel} />
                     <Separator className="my-2.5 print:my-1.5" />
-                    <PrintDetailItem label="Languages Spoken" value={suspect.languagesSpoken} />
+                    <PrintDetailItem label=" Languages Spoken" value={suspect.languagesSpoken} />
                 </Section>
 
                 <Section title="Family & Kin Information">
