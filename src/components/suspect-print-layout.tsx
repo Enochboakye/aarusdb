@@ -76,8 +76,8 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
   return (
     <div className="p-8  font-sans print:p-0" id="print-layout-content">
       <header className="text-center mb-4 print:mb-2">
-       <h1 className="text-3xl text-extrabold">ANTI ARMED ROBBERY UNIT</h1>
-       <h1 className="text xl text-extrabold">SUSPECT PROFILE FORM</h1>
+       <h1 className="text-3xl text-extrabold">ANTI-ARMED ROBBERY UNIT</h1>
+       <h1 className="text xl text-extrabold text-black">SUSPECT PROFILE FORM</h1>
       </header>
 
       <Separator className="my-3 print:my-2 bg-gray-400" />
