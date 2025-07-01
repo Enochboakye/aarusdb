@@ -104,7 +104,7 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
         <div className="grid grid-cols-2 gap-x-6 print:gap-x-4">
             {/* --- Left Column --- */}
             <div className="space-y-4 print:space-y-3">
-                <Section title="Personal Details">
+                <Section title="Personal Details" className="ml-4">
                     <PrintDetailItem label=" Date of Birth" value={suspect.dateOfBirth} />
                     <PrintDetailItem label=" Gender" value={suspect.gender} />
                     <PrintDetailItem label=" Nationality" value={suspect.nationality} />
@@ -113,7 +113,7 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
                     <PrintDetailItem label=" Marital Status" value={suspect.maritalStatus} />
                 </Section>
 
-                <Section title="Physical Description">
+                <Section title="Physical Description" className='ml-4'>
                     <PrintDetailItem icon={Ruler} label=" Height" value={suspect.height} />
                     <PrintDetailItem icon={Palette} label=" Skin Tone" value={suspect.skinTone} />
                     <PrintDetailItem icon={Sparkles} label=" Hair Style" value={suspect.hairStyle} />
@@ -124,7 +124,7 @@ export const SuspectPrintLayout: React.FC<SuspectPrintLayoutProps> = ({ suspect 
                     <PrintDetailItem value={suspect.physicalMarks} isList />
                 </Section>
 
-                 <Section title="Lifestyle">
+                 <Section title="Lifestyle" className='ml-4'>
                     <PrintDetailItem label=" Smokes" value={suspect.smokes} isBoolean />
                     <PrintDetailItem label=" Drinks Alcohol" value={suspect.drinksAlcohol} isBoolean />
                 </Section>
