@@ -51,7 +51,7 @@ const PrintDetailItem: React.FC<PrintDetailItemProps> = ({ icon: Icon, label, va
   return (
     <div className={cn("text-sm text-gray-800 print:text-black", className)}>
         {Icon && <Icon className="h-4 w-4 mr-2 inline-block" />}
-        {label && <span className="font-semibold text-gray-600 print:font-medium">{label}: </span>}
+        {label && <span className="font-extrabold text-black print:font-medium">{label}: </span>}
         {displayValue}
     </div>
   );
