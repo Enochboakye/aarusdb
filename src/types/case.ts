@@ -35,7 +35,7 @@ export interface Case {
   offence: string; 
   briefFacts: string;
   status: 'Open' | 'Pending' | 'Closed' | 'Under Investigation' | 'Cold Case';
-  priority: 'Low' | 'Medium' | 'High';
+  priority: 'First Degree' | 'Second Degree' | 'Third Degree'| 'Misdemeanor' | 'Infraction';
   dateReported: string; // ISO string
   dateOccurred?: string; // ISO string, if different from reported
   locationOfOffence?: string;
