@@ -17,7 +17,7 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { Calendar } from "@/components/ui/calendar";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { CalendarIcon, Save, Loader2, UserCog, UserPlus, Users, Edit3, XCircle, Phone as PhoneIcon,  PlusCircle, Trash2, Gavel, Camera as CameraIconLucide,  AlertTriangle } from "lucide-react";
+import { CalendarIcon, Save, Loader2, UserCog, UserPlus, Users, Edit3, XCircle, Phone as PhoneIcon,  PlusCircle, Trash2, Gavel, Camera as CameraIconLucide,  AlertTriangle, Link2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { format, parseISO, isValid } from "date-fns";
 import { GENDERS, EDUCATION_LEVELS, MARITAL_STATUSES, NATIONALITIES, SKIN_TONES, HAIR_STYLES, HAIR_COLORS, EYE_COLORS, PHYSICAL_MARK_OPTIONS,
@@ -88,7 +88,7 @@ export function SuspectForm({ initialData, onSubmitForm, isEditMode = false }: S
     nickname: initialData.nickname || "",
     profileImageUrl: initialData.profileImageUrl || "",
     profileImageStoragePath: initialData.profileImageStoragePath || "",
-    linkedRoNumber: (initialData.linkedCaseRoNumbers && initialData.linkedCaseRoNumbers.length > 0) ? initialData.linkedCaseRoNumbers[0] : "",
+    linkedCaseRoNumbers: initialData.linkedCaseRoNumbers || [],
     skinTone: initialData.skinTone || "",
     hairStyle: initialData.hairStyle || "",
     hairColor: initialData.hairColor || "",
@@ -123,7 +123,7 @@ export function SuspectForm({ initialData, onSubmitForm, isEditMode = false }: S
     drinksAlcohol: false,
     profileImageUrl: "",
     profileImageStoragePath: "",
-    linkedRoNumber: "",
+    linkedCaseRoNumbers: [],
     skinTone: "",
     hairStyle: "",
     hairColor: "",
@@ -188,10 +188,22 @@ export function SuspectForm({ initialData, onSubmitForm, isEditMode = false }: S
         errors.offences = offenceErrors as string[];
       }
     }
-    if (values.linkedRoNumber && !/^(\d{1,4}\/\d{4})?$/.test(values.linkedRoNumber)) {
-      errors.linkedRoNumber = "R.O. Number must be in NNN/YYYY format or empty."
-    }
 
+   if (values.linkedCaseRoNumbers && values.linkedCaseRoNumbers.length > 0) {
+        const roNumberErrors: (string | undefined)[] = [];
+        values.linkedCaseRoNumbers.forEach((roNumber, index) => {
+            if (!roNumber || roNumber.trim() === "") {
+                roNumberErrors[index] = "R.O. Number cannot be empty if added.";
+            } else if (!/^\d{1,4}\/\d{4}$/.test(roNumber.trim())) {
+                roNumberErrors[index] = "R.O. Number must be in NNN/YYYY format.";
+            } else {
+                roNumberErrors[index] = undefined;
+            }
+        });
+        if (roNumberErrors.some(e => !!e)) {
+            errors.linkedCaseRoNumbers = roNumberErrors.filter((e): e is string => typeof e === "string");
+        }
+    }
     return errors;
   };
 
@@ -275,11 +287,11 @@ export function SuspectForm({ initialData, onSubmitForm, isEditMode = false }: S
 
       toast({
         title: `Suspect Record ${isEditMode ? 'Updated' : 'Created'}`,
-        description: `${values.fullName}'s record has been successfully ${isEditMode ? 'saved' : 'created'}.${values.linkedRoNumber ? ` Attempted to link to case ${values.linkedRoNumber}.` : ''}`,
+        description: `${values.fullName}'s record has been successfully ${isEditMode ? 'saved' : 'created'}.${values.linkedCaseRoNumbers ? ` Attempted to link to case ${values.linkedCaseRoNumbers}.` : ''}`,
       });
 
       if (suspectIdToRedirect) router.push(`/suspects/${suspectIdToRedirect}`);
-      else router.push('/dashboard');
+      else router.push('/suspects');
 
       router.refresh();
       if (!isEditMode) {
@@ -656,12 +668,33 @@ export function SuspectForm({ initialData, onSubmitForm, isEditMode = false }: S
                         <p className="text-sm text-muted-foreground">Officer in charge of this suspect&#39;s case (if known).</p>
                         <FormikErrorMessage name="assignedInvestigator" />
                     </FormItem>
-                    <FormItem>
-                        <Label htmlFor="linkedRoNumber">Link to Case (R.O. Number)</Label>
-                        <Field as={Input} name="linkedRoNumber" id="linkedRoNumber" placeholder="e.g., 001/2024" disabled={formikSubmitting}/>
-                        <p className="text-sm text-muted-foreground">If suspect tied to a case, enter R.O. Number (NNN/YYYY).</p>
-                        <FormikErrorMessage name="linkedRoNumber" />
-                    </FormItem>
+                    <div className="space-y-6 border-b pb-8">
+                <div className="flex justify-between items-center">
+                    <h3 className="text-xl font-semibold text-foreground flex items-center"><Link2 className="mr-2 h-5 w-5 text-primary" /> Linked Cases (R.O. Numbers)</h3>
+                    <FieldArray name="linkedCaseRoNumbers">
+                        {({ push }) => (
+                            <Button type="button" variant="outline" size="sm" onClick={() => push('')} disabled={formikSubmitting}><PlusCircle className="mr-2 h-4 w-4" /> Add R.O. Number</Button>
+                        )}
+                    </FieldArray>
+                </div>
+
+                <FieldArray name="linkedCaseRoNumbers">
+                    {({ remove }) => (
+                        <>
+                            {values.linkedCaseRoNumbers.map((roNumber, index) => (
+                                <FormItem key={index} className="flex items-center space-x-2">
+                                    <Field name={`linkedCaseRoNumbers.${index}`} as={Input} placeholder="e.g., 001/2024" className="flex-grow" disabled={formikSubmitting}/>
+                                    <Button type="button" variant="ghost" size="icon" className="text-destructive" onClick={() => remove(index)} disabled={formikSubmitting}><Trash2 className="h-4 w-4" /></Button>
+                                    <FormikErrorMessage name={`linkedCaseRoNumbers.${index}`} />
+                                </FormItem>
+                            ))}
+                        </>
+                    )}
+                </FieldArray>
+                {values.linkedCaseRoNumbers.length === 0 && <p className="text-sm text-muted-foreground">No R.O. numbers linked.</p>}
+                <p className="text-sm text-muted-foreground">Add one or more case R.O. numbers this suspect is linked to.</p>
+            
+            </div>
                    
                     {isEditMode && initialData && (
                         <>

@@ -172,6 +172,7 @@ async function processAndUploadExhibits(
     return processedExhibits;
 }
 
+
 async function updateSuspectRecordsWithCaseLink(
   suspectLinks: CaseLink[],
   caseRoNumber: string,
@@ -187,6 +188,7 @@ async function updateSuspectRecordsWithCaseLink(
         const suspectSnap = await getDoc(suspectDocRef);
         if (suspectSnap.exists()) {
           const suspectData = suspectSnap.data() as Suspect;
+          // Use arrayUnion to safely add the R.O. number without creating duplicates
           await updateDoc(suspectDocRef, {
             linkedCaseRoNumbers: arrayUnion(caseRoNumber),
             updatedAt: Timestamp.fromDate(new Date()).toDate().toISOString(),
@@ -216,6 +218,7 @@ async function updateSuspectRecordsWithCaseLink(
     }
   }
 }
+
 
 export async function createCaseAction(
   data: CaseFormValues
@@ -454,6 +457,7 @@ export async function fetchCaseAction(id: string): Promise<Case | null> {
     throw new Error(`Failed to fetch case details: ${error instanceof Error ? error.message : String(error)}`);
   }
 }
+
 
 export async function getSuspectMatchesForCaseRoAction(roNumber: string): Promise<Array<{ id: string; fullName: string }>> {
   if (!roNumber) return [];

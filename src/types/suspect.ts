@@ -14,7 +14,6 @@ export type CustodyStatus =
   | 'Wanted' 
   | 'Deceased'
   | 'Other'
-  |'Convicted(Prison)'
   | 'Unknown';
 
 export interface Suspect {
@@ -49,7 +48,6 @@ export interface Suspect {
 
   linkedCaseRoNumbers?: string[]; // Stores R.O. numbers of cases this suspect is linked to
 
-
   // Family & Kin
   father?: { name: string; address?: string };
   mother?: { name: string; address?: string };
@@ -69,8 +67,8 @@ export interface Suspect {
   eyeColor?: string;
 }
 
-// Form values type, largely mirrors Suspect but profileImageUrl can be data URI initially
-export type SuspectFormValues = {
+// Form values type, largely mirrors Suspect but handles arrays and image data URI
+export interface SuspectFormValues {
   fullName: string;
   nickname?: string;
   gender: Gender;
@@ -84,25 +82,25 @@ export type SuspectFormValues = {
   maritalStatus: MaritalStatus;
   occupation: string;
   emailAddress?: string;
-  phoneNumbers: string[]; // Made non-optional
+  phoneNumbers: string[];
   assignedInvestigator?: string;
-  physicalMarks: string[]; // Assuming physicalMarks should also be non-optional for form consistency
+  physicalMarks: string[];
   languagesSpoken: string;
-  offences: string[]; // Made non-optional
+  offences: string[];
   smokes: boolean;
   drinksAlcohol: boolean;
   profileImageUrl?: string; // Can be data URI from form, or storage URL
   profileImageStoragePath?: string; // Only populated if image is already in storage
-  linkedRoNumber?: string;
+  linkedCaseRoNumbers: string[];
   skinTone?: string;
   hairStyle?: string;
   hairColor?: string;
   eyeColor?: string;
   custodyStatus?: CustodyStatus;
   custodyLocation?: string;
-   // Family & Kin
+  
+  // Family & Kin
   father?: { name: string; address?: string };
   mother?: { name: string; address?: string };
   nextOfKin?: { name: string; address?: string };
 }
-
