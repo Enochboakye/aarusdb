@@ -14,7 +14,7 @@ const Topbar = () => {
   const router = useRouter();
   
   return (
-    <div className='flex justify-between items-center p-4  shadow-md w-4xl fixed top-1 mb-4  bg-gray-400'>
+    <div className='flex justify-between items-center p-4  shadow-md w-4xl fixed top-1 mb-4'>
       <div className=" flex items-center space-x-4">
         <SidebarTrigger />
         <ModeToggle/>
