@@ -68,7 +68,7 @@ export interface CaseFormValues {
   offence: string;
   briefFacts: string;
   status: 'Open' | 'Pending' | 'Closed' | 'Under Investigation' | 'Cold Case';
-  priority: 'Low' | 'Medium' | 'High';
+  priority: 'First Degree' | 'Second Degree' | 'Third Degree'| 'Misdemeanor' | 'Infraction';
   dateReported: string | undefined; 
   dateOccurred?: string | undefined; 
   locationOfOffence?: string | undefined;
@@ -164,7 +164,7 @@ export function CaseForm({ initialData, onSubmitForm, isEditMode = false }: Case
     offence: "",
     briefFacts: "",
     status: "Open",
-    priority: "Medium",
+    priority: "Misdemeanor",
     dateReported: "",
     dateOccurred: "",
     locationOfOffence: "",
@@ -397,7 +397,7 @@ export function CaseForm({ initialData, onSubmitForm, isEditMode = false }: Case
                   <Label htmlFor="priority">Priority *</Label>
                   <Select onValueChange={(v) => setFieldValue('priority', v)} value={values.priority} disabled={isSubmitting}>
                     <SelectTrigger id="priority"><SelectValue placeholder="Select priority" /></SelectTrigger>
-                    <SelectContent>{['Low', 'Medium', 'High'].map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
+                    <SelectContent>{['First Degree', 'Second Degree', 'Third Degree', 'Misdemeanor', 'Infraction'].map(p => <SelectItem key={p} value={p}>{p}</SelectItem>)}</SelectContent>
                   </Select>
                   <FormikErrorMessage name="priority"/>
                 </FormItem>
