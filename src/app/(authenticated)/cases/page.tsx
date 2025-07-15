@@ -58,9 +58,9 @@ function CasesPageContent() {
       size: 200,
     },
     {
-      accessorKey: 'dateOccurred',
-      header: 'D.O.O',
-      size: 100,
+      accessorKey: 'assignedInvestigator',
+      header: 'Investigator',
+      size: 200,
     },
   ];
 
